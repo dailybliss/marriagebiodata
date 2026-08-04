@@ -155,8 +155,9 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 .preview-action-btn svg { width: 14px; height: 14px; }
 .btn-download { background: var(--rose); color: #fff; border: none; }
 .btn-download:hover { background: var(--rose-light); }
-.btn-share { background: #fff; color: var(--green); border: 1px solid var(--green); }
-.btn-share:hover { background: var(--green-bg); }
+.btn-whatsapp { background: #25D366; color: #fff; border: none; }
+.btn-whatsapp:hover { background: #1DA851; }
+.btn-whatsapp svg { width: 16px; height: 16px; }
 
 /* MOBILE PREVIEW TOGGLE */
 .mobile-preview-fab { display: none; position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--rose); color: #fff; border: none; box-shadow: 0 4px 16px rgba(139,26,58,0.35); cursor: pointer; z-index: 50; align-items: center; justify-content: center; }
@@ -648,12 +649,12 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           PDF
         </button>
         <button class="preview-action-btn btn-download" onclick="handleDownload('image')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Image
         </button>
-        <button class="preview-action-btn btn-share" onclick="handleShare()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          Share
+        <button class="preview-action-btn btn-whatsapp" onclick="handleShare()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.01a9.89 9.89 0 0 1-5.042-1.382l-.362-.214-3.748.983.999-3.648-.235-.374A9.86 9.86 0 0 1 2.14 12.05C2.14 6.58 6.58 2.14 12.05 2.14c2.655 0 5.148 1.035 7.021 2.91a9.875 9.875 0 0 1 2.893 7.036c-.003 5.47-4.443 9.912-9.914 9.912zM20.52 3.449C18.24 1.245 15.24 0 12.05 0 5.464 0 .104 5.334.101 11.893c-.001 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.234-6.165-3.479-8.449z"/></svg>
+          WhatsApp
         </button>
       </div>
     </div>
@@ -681,12 +682,12 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         PDF
       </button>
       <button class="preview-action-btn btn-download" style="flex:1" onclick="handleDownload('image')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Image
       </button>
-      <button class="preview-action-btn btn-share" onclick="handleShare()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        Share
+      <button class="preview-action-btn btn-whatsapp" onclick="handleShare()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.01a9.89 9.89 0 0 1-5.042-1.382l-.362-.214-3.748.983.999-3.648-.235-.374A9.86 9.86 0 0 1 2.14 12.05C2.14 6.58 6.58 2.14 12.05 2.14c2.655 0 5.148 1.035 7.021 2.91a9.875 9.875 0 0 1 2.893 7.036c-.003 5.47-4.443 9.912-9.914 9.912zM20.52 3.449C18.24 1.245 15.24 0 12.05 0 5.464 0 .104 5.334.101 11.893c-.001 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.234-6.165-3.479-8.449z"/></svg>
+        WhatsApp
       </button>
     </div>
   </div>
@@ -743,12 +744,16 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         Download PDF
       </button>
       <button class="success-btn success-btn-download" onclick="downloadImage()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download Image
       </button>
-      <button class="success-btn success-btn-share" onclick="sharePDF()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        Share on WhatsApp
+      <button class="success-btn success-btn-share" onclick="shareOnWhatsApp('pdf')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.01a9.89 9.89 0 0 1-5.042-1.382l-.362-.214-3.748.983.999-3.648-.235-.374A9.86 9.86 0 0 1 2.14 12.05C2.14 6.58 6.58 2.14 12.05 2.14c2.655 0 5.148 1.035 7.021 2.91a9.875 9.875 0 0 1 2.893 7.036c-.003 5.47-4.443 9.912-9.914 9.912zM20.52 3.449C18.24 1.245 15.24 0 12.05 0 5.464 0 .104 5.334.101 11.893c-.001 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.234-6.165-3.479-8.449z"/></svg>
+        Share PDF on WhatsApp
+      </button>
+      <button class="success-btn success-btn-share" onclick="shareOnWhatsApp('image')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.05 21.785h-.01a9.89 9.89 0 0 1-5.042-1.382l-.362-.214-3.748.983.999-3.648-.235-.374A9.86 9.86 0 0 1 2.14 12.05C2.14 6.58 6.58 2.14 12.05 2.14c2.655 0 5.148 1.035 7.021 2.91a9.875 9.875 0 0 1 2.893 7.036c-.003 5.47-4.443 9.912-9.914 9.912zM20.52 3.449C18.24 1.245 15.24 0 12.05 0 5.464 0 .104 5.334.101 11.893c-.001 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.234-6.165-3.479-8.449z"/></svg>
+        Share Image on WhatsApp
       </button>
       <button class="success-btn success-btn-export" onclick="exportData()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
@@ -1263,7 +1268,7 @@ function handleDownload(type) {
 
 function handleShare() {
   if (paymentDone) {
-    sharePDF();
+    shareOnWhatsApp('pdf');
     return;
   }
   window._downloadType = 'share';
@@ -1428,35 +1433,41 @@ function triggerDownload(blob, filename) {
 }
 
 // ===== SHARE =====
-function sharePDF() {
-  if (generatedPDFBlob) {
-    triggerShare(generatedPDFBlob);
+function shareOnWhatsApp(type) {
+  var blob = type === 'image' ? generatedImageBlob : generatedPDFBlob;
+  if (blob) {
+    triggerWhatsAppShare(blob, type);
     return;
   }
   renderCleanBiodata(function() {
-    triggerShare(generatedPDFBlob);
+    var b = type === 'image' ? generatedImageBlob : generatedPDFBlob;
+    triggerWhatsAppShare(b, type);
   });
 }
 
-function triggerShare(blob) {
-  var name = getFileName('pdf');
-  var file = new File([blob], name, { type: 'application/pdf' });
+function triggerWhatsAppShare(blob, type) {
+  var ext = type === 'image' ? 'png' : 'pdf';
+  var mime = type === 'image' ? 'image/png' : 'application/pdf';
+  var filename = getFileName(ext);
+  var file = new File([blob], filename, { type: mime });
 
+  // Try Web Share API with WhatsApp as the target
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({
       files: [file],
       title: 'Marriage Biodata',
       text: (formData.fullName || 'Marriage') + ' - Biodata'
     }).catch(function(err) {
-      // User cancelled share or share failed — fallback to download
       if (err.name !== 'AbortError') {
-        triggerDownload(blob, getFileName('pdf'));
+        // Share failed — fallback: download the file and prompt manual WhatsApp share
+        triggerDownload(blob, filename);
+        alert('File downloaded. Open WhatsApp and share the file from your gallery/files.');
       }
     });
   } else {
-    // Web Share API not supported — fallback to download
-    triggerDownload(blob, getFileName('pdf'));
-    alert('Sharing is not supported on this browser. The PDF has been downloaded instead — you can share it from your files.');
+    // Web Share API not available (desktop browser) — download and prompt
+    triggerDownload(blob, filename);
+    alert('File downloaded. Open WhatsApp and share the ' + ext.toUpperCase() + ' from your files.');
   }
 }
 
