@@ -123,8 +123,17 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
 /* PREVIEW PANEL */
 .preview-container { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-soft); }
-.preview-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; text-align: center; }
-.preview-frame { width: 100%; aspect-ratio: 210/297; position: relative; overflow: hidden; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
+.preview-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.preview-label { font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+.page-indicator { font-size: 11px; font-weight: 600; color: var(--rose); background: var(--rose-bg); padding: 3px 10px; border-radius: 12px; }
+
+/* Stacked scrollable pages */
+.preview-pages { display: flex; flex-direction: column; gap: 12px; max-height: 70vh; overflow-y: auto; padding: 2px; scrollbar-width: thin; }
+.preview-pages::-webkit-scrollbar { width: 6px; }
+.preview-pages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.preview-page-wrap { position: relative; }
+.preview-page-label { font-size: 10px; color: var(--text-light); text-align: center; margin-bottom: 4px; font-weight: 600; }
+.preview-frame { width: 100%; aspect-ratio: 210/297; position: relative; overflow: hidden; border-radius: var(--radius-sm); border: 1px solid var(--border-light); box-shadow: var(--shadow-soft); }
 .preview-inner { position: absolute; inset: 0; overflow: hidden; font-family: 'Lato', sans-serif; }
 
 /* PREVIEW CONTENT STYLES */
@@ -639,10 +648,11 @@ textarea.field-input { resize: vertical; min-height: 60px; }
   <!-- PREVIEW PANEL (Desktop) -->
   <div class="preview-panel">
     <div class="preview-container">
-      <div class="preview-label">Live preview</div>
-      <div class="preview-frame">
-        <div class="preview-inner" id="preview-inner"></div>
+      <div class="preview-label-row">
+        <span class="preview-label">Live preview</span>
+        <span class="page-indicator" id="page-indicator">Page 1 of 1</span>
       </div>
+      <div class="preview-pages" id="preview-pages"></div>
       <div class="preview-actions">
         <button class="preview-action-btn btn-download" onclick="handleDownload('pdf')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -673,9 +683,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
   </button>
   <div class="mobile-preview-card">
-    <div class="preview-frame">
-      <div class="preview-inner" id="mobile-preview-inner"></div>
-    </div>
+    <div class="preview-pages" id="mobile-preview-pages"></div>
     <div class="mobile-preview-actions">
       <button class="preview-action-btn btn-download" style="flex:1" onclick="handleDownload('pdf')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -796,6 +804,34 @@ var customize = {
   photoPosition: 'left',
   photoSize: 'medium'
 };
+
+// ===== TEMPLATE PAGE CONFIG =====
+// maxPages: 1 = single-page (auto-fit if content overflows)
+//           2 or 3 = multi-page (content flows across pages, fonts stay readable)
+var templatePageConfig = {
+  'royal-maroon': 1,
+  'ocean-blue': 3,
+  'rose-garden': 3,
+  'sage-minimal': 1,
+  'lavender-dream': 3,
+  'gold-classic': 1,
+  'teal-fresh': 3,
+  'blush-peach': 3,
+  'slate-modern': 1,
+  'ruby-ornate': 3
+};
+
+// Read selected template from URL (?template=xxx)
+function getTemplateId() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('template') || 'royal-maroon';
+}
+
+var currentTemplateId = getTemplateId();
+var maxPages = templatePageConfig[currentTemplateId] || 1;
+
+// Page measurement state (updated on each preview render)
+var currentPageCount = 1;
 
 var colorOptions = [
   { name: 'Maroon', hex: '#8B1A3A' },
@@ -964,10 +1000,119 @@ function readForm() {
 // ===== PREVIEW RENDERING =====
 function updatePreview() {
   readForm();
-  var html = buildPreviewHTML();
-  document.getElementById('preview-inner').innerHTML = html;
-  var mobilePreview = document.getElementById('mobile-preview-inner');
-  if (mobilePreview) mobilePreview.innerHTML = html;
+  measurePages();
+  renderPreviewPages();
+  autoSave();
+}
+
+// Measure how many pages the content needs
+function measurePages() {
+  var measureContainer = document.getElementById('pdf-render-container');
+  var html = buildPreviewHTML(false, true);
+  measureContainer.style.display = 'block';
+  measureContainer.style.height = 'auto';
+  measureContainer.innerHTML = html;
+
+  var pvContent = measureContainer.querySelector('.pv-content');
+  void (pvContent && pvContent.offsetHeight);
+  var naturalHeight = pvContent ? pvContent.scrollHeight : 842;
+
+  measureContainer.innerHTML = '';
+  measureContainer.style.display = 'none';
+  measureContainer.style.height = '842px';
+
+  var pageHeight = 842;
+  if (maxPages === 1) {
+    currentPageCount = 1;
+  } else {
+    currentPageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
+    if (currentPageCount < 1) currentPageCount = 1;
+  }
+
+  updatePageIndicator();
+}
+
+function updatePageIndicator() {
+  var indicator = document.getElementById('page-indicator');
+  if (indicator) {
+    indicator.textContent = currentPageCount === 1 ? 'Single page' : currentPageCount + ' pages';
+  }
+}
+
+// Render all pages stacked vertically
+function renderPreviewPages() {
+  renderStackedPages('preview-pages');
+  renderStackedPages('mobile-preview-pages');
+}
+
+function renderStackedPages(containerId) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (var p = 1; p <= currentPageCount; p++) {
+    var wrap = document.createElement('div');
+    wrap.className = 'preview-page-wrap';
+
+    if (currentPageCount > 1) {
+      var label = document.createElement('div');
+      label.className = 'preview-page-label';
+      label.textContent = 'Page ' + p + ' of ' + currentPageCount;
+      wrap.appendChild(label);
+    }
+
+    var frame = document.createElement('div');
+    frame.className = 'preview-frame';
+    var inner = document.createElement('div');
+    inner.className = 'preview-inner';
+    inner.innerHTML = buildPagedPreviewHTML(p, true);
+    frame.appendChild(inner);
+    wrap.appendChild(frame);
+    container.appendChild(wrap);
+
+    // Scale this page's content to fit the frame (defer so layout is ready)
+    (function(innerEl) {
+      requestAnimationFrame(function() { scalePreviewToFit(innerEl); });
+    })(inner);
+  }
+}
+
+function scalePreviewToFit(previewEl) {
+  var inner = previewEl.querySelector('.paged-content-wrap');
+  if (!inner) return;
+  var boxWidth = previewEl.offsetWidth;
+  if (boxWidth === 0) {
+    var frame = previewEl.closest('.preview-frame');
+    boxWidth = frame ? frame.offsetWidth : 380;
+  }
+  var scale = boxWidth / 595;
+  inner.style.transformOrigin = 'top left';
+  inner.style.transform = 'scale(' + scale + ')';
+}
+
+// Build content windowed to a specific page
+function buildPagedPreviewHTML(pageNum, includeWatermark) {
+  var contentHTML = buildPreviewHTML(false, true); // export-sized, no watermark
+  var pageHeight = 842;
+  var offset = (pageNum - 1) * pageHeight;
+  var totalHeight = currentPageCount * pageHeight;
+
+  var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
+  // Inner holder: full multi-page height, offset upward to show this page's slice
+  html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+  html += contentHTML;
+  html += '</div>';
+
+  if (includeWatermark) {
+    var ac = customize.accentColor;
+    html += '<svg style="position:absolute;inset:0;z-index:10;pointer-events:none;" viewBox="0 0 595 842" xmlns="http://www.w3.org/2000/svg">';
+    html += '<defs><pattern id="wmp' + pageNum + '" x="0" y="0" width="260" height="140" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">';
+    html += '<text x="10" y="35" font-family="Inter,sans-serif" font-size="16" fill="' + ac + '" opacity="0.1" font-weight="700" letter-spacing="3">PREVIEW</text>';
+    html += '</pattern></defs><rect width="595" height="842" fill="url(#wmp' + pageNum + ')"/></svg>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 function buildPreviewHTML(includeWatermark, forExport) {
@@ -982,13 +1127,13 @@ function buildPreviewHTML(includeWatermark, forExport) {
   // Font sizes: preview uses tiny clamp values for the small panel,
   // export uses proper A4 document sizes (595px = 210mm A4 width)
   var sz = forExport ? {
-    icon: '26px',
-    name: '40px',
-    tagline: '14px',
-    secTitle: '19px',
-    field: '17px',
-    fieldLabel: '15px',
-    pref: '17px'
+    icon: '22px',
+    name: '34px',
+    tagline: '12px',
+    secTitle: '16px',
+    field: '14.5px',
+    fieldLabel: '13px',
+    pref: '14.5px'
   } : {
     icon: 'clamp(8px,2.5%,14px)',
     name: 'clamp(10px,4.5%,22px)',
@@ -1009,8 +1154,20 @@ function buildPreviewHTML(includeWatermark, forExport) {
   var contentPadding = forExport ? '32px 40px 28px' : '5% 6% 4%';
   var sectionStyle = forExport ? ' style="margin-bottom:14px"' : '';
   window._sectionStyle = sectionStyle;
-  var html = '<div class="pv-bg" style="background:' + bgLight + ';border:1px solid ' + bgMid + '"></div>';
-  html += '<div class="pv-content" style="color:' + darken(ac, 0.15) + ';padding:' + contentPadding + '">';
+
+  // For export/paged rendering, background fills the full (possibly multi-page) height
+  // and content flows naturally. For the small live preview (non-export) it fills the box.
+  var bgStyle, contentHeightStyle;
+  if (forExport) {
+    bgStyle = 'position:absolute;top:0;left:0;width:100%;height:100%;min-height:842px;';
+    contentHeightStyle = 'min-height:842px;';
+  } else {
+    bgStyle = 'position:absolute;inset:0;';
+    contentHeightStyle = 'height:100%;';
+  }
+
+  var html = '<div class="pv-bg" style="' + bgStyle + 'background:' + bgLight + ';border:1px solid ' + bgMid + '"></div>';
+  html += '<div class="pv-content" style="' + contentHeightStyle + 'color:' + darken(ac, 0.15) + ';padding:' + contentPadding + '">';
 
   // Header
   html += '<div class="pv-header">';
@@ -1213,9 +1370,15 @@ function formatDate(dateStr) {
 
 // ===== MOBILE PREVIEW =====
 function openMobilePreview() {
-  updatePreview();
   document.getElementById('mobile-preview-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  updatePreview();
+  // Rescale after overlay is visible so offsetWidth is correct
+  setTimeout(function() {
+    document.querySelectorAll('#mobile-preview-pages .preview-inner').forEach(function(inner) {
+      scalePreviewToFit(inner);
+    });
+  }, 50);
 }
 function closeMobilePreview() {
   document.getElementById('mobile-preview-overlay').classList.remove('open');
@@ -1394,27 +1557,36 @@ function onPaymentSuccess() {
   document.body.style.overflow = 'hidden';
 }
 
-// ===== PDF GENERATION =====
+// ===== PDF GENERATION (MULTI-PAGE) =====
 function isMobile() {
   return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 }
 
-function renderCleanBiodata(callback) {
+// Storage for generated page blobs
+var generatedPageCanvases = [];  // array of per-page canvases
+
+// Renders the full biodata, slices into pages, and produces per-page canvases.
+// Calls callback(pageCanvases[]) when done.
+function renderAllPages(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
   var container = document.getElementById('pdf-render-container');
-  var html = buildPreviewHTML(false, true);
+  var pageHeight = 842;
+  var pageWidth = 595;
 
-  // Save scroll position and prevent scrollbar from container overflow
   var scrollX = window.scrollX;
   var scrollY = window.scrollY;
   var origOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
 
+  // Build content at export size, let it grow to full natural height
+  var html = buildPreviewHTML(false, true);
   container.style.display = 'block';
+  container.style.height = 'auto';
+  container.style.overflow = 'visible';
   container.innerHTML = html;
 
-  // Fix aspect-ratio elements: set explicit pixel heights that html2canvas can read
+  // Fix photo aspect-ratio
   var photoEls = container.querySelectorAll('.pv-photo');
   photoEls.forEach(function(photo) {
     var w = photo.offsetWidth;
@@ -1425,19 +1597,55 @@ function renderCleanBiodata(callback) {
     }
   });
 
+  var pvContent = container.querySelector('.pv-content');
+  void pvContent.offsetHeight; // force reflow
+  var naturalHeight = pvContent.scrollHeight;
+
+  // Determine page count
+  var pageCount;
+  if (maxPages === 1) {
+    pageCount = 1;
+    // Auto-fit: scale content to fit one page if it overflows
+    if (naturalHeight > pageHeight) {
+      var fitScale = (pageHeight / naturalHeight) * 0.99;
+      var scaledWidth = pageWidth * fitScale;
+      var xOffset = (pageWidth - scaledWidth) / 2;
+      pvContent.style.transformOrigin = 'top left';
+      pvContent.style.transform = 'translateX(' + xOffset + 'px) scale(' + fitScale + ')';
+    }
+    container.style.height = pageHeight + 'px';
+    container.style.overflow = 'hidden';
+  } else {
+    pageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
+    if (pageCount < 1) pageCount = 1;
+    // Set container to exact page count height
+    var totalHeight = pageCount * pageHeight;
+    // If content exceeds max pages, scale it down to fit within max pages
+    if (naturalHeight > totalHeight) {
+      var fit = (totalHeight / naturalHeight) * 0.99;
+      pvContent.style.transformOrigin = 'top left';
+      pvContent.style.transform = 'scale(' + fit + ')';
+      pvContent.style.width = (100 / fit) + '%';
+    }
+    container.style.height = totalHeight + 'px';
+    container.style.overflow = 'hidden';
+    // Make the bg fill all pages
+    var bg = container.querySelector('.pv-bg');
+    if (bg) bg.style.height = totalHeight + 'px';
+  }
+
   var delay = isMobile() ? 1200 : 500;
 
-  // Cleanup helper used by every exit path
   var cleanup = function() {
     container.innerHTML = '';
     container.style.display = 'none';
+    container.style.height = '842px';
+    container.style.overflow = 'hidden';
     document.body.style.overflow = origOverflow;
     window.scrollTo(scrollX, scrollY);
     document.getElementById('generating-overlay').classList.remove('open');
   };
 
-  // Try high resolution first; step down only if the device can't handle it.
-  // Scale 3 ≈ 213 DPI on A4 — crisp text on zoom and print.
   var scaleAttempts = [3, 2, 1.5];
 
   function attemptRender(attemptIdx) {
@@ -1447,15 +1655,14 @@ function renderCleanBiodata(callback) {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#FFFFFF',
-      width: 595,
-      height: 842,
+      width: pageWidth,
+      height: pageCount * pageHeight,
       logging: false,
       scrollX: 0,
       scrollY: 0,
       x: 0,
       y: 0,
       onclone: function(clonedDoc) {
-        // Fix aspect-ratio photos which html2canvas can't compute (causes 0-height error)
         var clonedContainer = clonedDoc.getElementById('pdf-render-container');
         if (clonedContainer) {
           var photos = clonedContainer.querySelectorAll('.pv-photo');
@@ -1468,62 +1675,51 @@ function renderCleanBiodata(callback) {
               photo.style.aspectRatio = 'auto';
             }
             var img = photo.querySelector('img');
-            if (img) {
-              img.style.width = '100%';
-              img.style.height = '100%';
-              img.style.objectFit = 'cover';
-            }
+            if (img) { img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover'; }
           });
         }
       }
-    }).then(function(canvas) {
-      // Validate the canvas actually rendered at this scale
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    }).then(function(fullCanvas) {
+      if (!fullCanvas || fullCanvas.width === 0 || fullCanvas.height === 0) {
         throw new Error('Empty canvas at scale ' + renderScale);
       }
       try {
-        // Generate PDF blob (synchronous)
-        var jsPDF = window.jspdf.jsPDF;
-        var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-        var imgData = canvas.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-        generatedPDFBlob = pdf.output('blob');
-
-        // Generate image blob (async) — wait for it before finishing
-        canvas.toBlob(function(imgBlob) {
-          if (imgBlob) {
-            generatedImageBlob = imgBlob;
-          } else {
-            generatedImageBlob = dataURLToBlob(canvas.toDataURL('image/png'));
-          }
-          cleanup();
-          if (callback) callback();
-        }, 'image/png');
-      } catch(innerErr) {
-        // PDF/blob creation failed (likely memory at this scale) — try lower scale
-        console.error('Blob creation failed at scale ' + renderScale + ':', innerErr);
-        if (attemptIdx < scaleAttempts.length - 1) {
-          attemptRender(attemptIdx + 1);
-        } else {
-          cleanup();
-          alert('Could not create the file. Please try again.\n\nError: ' + (innerErr.message || innerErr));
+        // Slice the full canvas into per-page canvases
+        var pageCanvases = [];
+        var pxPerPage = fullCanvas.height / pageCount;
+        for (var p = 0; p < pageCount; p++) {
+          var pageCanvas = document.createElement('canvas');
+          pageCanvas.width = fullCanvas.width;
+          pageCanvas.height = Math.round(pxPerPage);
+          var ctx = pageCanvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(
+            fullCanvas,
+            0, Math.round(p * pxPerPage), fullCanvas.width, Math.round(pxPerPage),
+            0, 0, pageCanvas.width, pageCanvas.height
+          );
+          pageCanvases.push(pageCanvas);
         }
+        generatedPageCanvases = pageCanvases;
+        currentPageCount = pageCount;
+        cleanup();
+        if (callback) callback(pageCanvases);
+      } catch(innerErr) {
+        console.error('Slicing failed at scale ' + renderScale + ':', innerErr);
+        if (attemptIdx < scaleAttempts.length - 1) attemptRender(attemptIdx + 1);
+        else { cleanup(); alert('Could not create the file. Please try again.\n\nError: ' + (innerErr.message || innerErr)); }
       }
     }).catch(function(err) {
       console.error('Render failed at scale ' + renderScale + ':', err);
-      if (attemptIdx < scaleAttempts.length - 1) {
-        attemptRender(attemptIdx + 1);
-      } else {
-        cleanup();
-        alert('Failed to generate. Please try again.\n\nError: ' + (err.message || err));
-      }
+      if (attemptIdx < scaleAttempts.length - 1) attemptRender(attemptIdx + 1);
+      else { cleanup(); alert('Failed to generate. Please try again.\n\nError: ' + (err.message || err)); }
     });
   }
 
   setTimeout(function() {
-    try {
-      attemptRender(0);
-    } catch(outerErr) {
+    try { attemptRender(0); }
+    catch(outerErr) {
       console.error('Render error:', outerErr);
       cleanup();
       alert('Something went wrong. Please try again.\n\nError: ' + (outerErr.message || outerErr));
@@ -1531,24 +1727,47 @@ function renderCleanBiodata(callback) {
   }, delay);
 }
 
+// ===== DOWNLOAD PDF (multi-page) =====
 function downloadPDF() {
-  if (generatedPDFBlob) {
-    triggerDownload(generatedPDFBlob, getFileName('pdf'));
-    return;
-  }
-  renderCleanBiodata(function() {
-    triggerDownload(generatedPDFBlob, getFileName('pdf'));
+  renderAllPages(function(pageCanvases) {
+    var jsPDF = window.jspdf.jsPDF;
+    var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    pageCanvases.forEach(function(canvas, i) {
+      if (i > 0) pdf.addPage();
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+    });
+    var blob = pdf.output('blob');
+    triggerDownload(blob, getFileName('pdf'));
   });
 }
 
+// ===== DOWNLOAD IMAGE (one image per page) =====
 function downloadImage() {
-  if (generatedImageBlob) {
-    triggerDownload(generatedImageBlob, getFileName('png'));
-    return;
-  }
-  renderCleanBiodata(function() {
-    triggerDownload(generatedImageBlob, getFileName('png'));
+  renderAllPages(function(pageCanvases) {
+    if (pageCanvases.length === 1) {
+      pageCanvases[0].toBlob(function(blob) {
+        if (!blob) blob = dataURLToBlob(pageCanvases[0].toDataURL('image/png'));
+        triggerDownload(blob, getFileName('png'));
+      }, 'image/png');
+    } else {
+      // Multiple pages — download each as a separate image, sequentially
+      downloadImagesSequentially(pageCanvases, 0);
+    }
   });
+}
+
+function downloadImagesSequentially(canvases, idx) {
+  if (idx >= canvases.length) return;
+  canvases[idx].toBlob(function(blob) {
+    if (!blob) blob = dataURLToBlob(canvases[idx].toDataURL('image/png'));
+    var base = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata' : 'marriage_biodata';
+    triggerDownload(blob, base + '_page' + (idx + 1) + '.png');
+    // Stagger downloads so the browser doesn't block them
+    setTimeout(function() {
+      downloadImagesSequentially(canvases, idx + 1);
+    }, 800);
+  }, 'image/png');
 }
 
 function getFileName(ext) {
@@ -1584,14 +1803,60 @@ function triggerDownload(blob, filename) {
 
 // ===== SHARE =====
 function shareOnWhatsApp(type) {
-  var blob = type === 'image' ? generatedImageBlob : generatedPDFBlob;
-  if (blob) {
-    triggerWhatsAppShare(blob, type);
-    return;
-  }
-  renderCleanBiodata(function() {
-    var b = type === 'image' ? generatedImageBlob : generatedPDFBlob;
-    triggerWhatsAppShare(b, type);
+  renderAllPages(function(pageCanvases) {
+    if (type === 'image') {
+      // For images: share page 1 via Web Share (multiple files if supported)
+      shareImages(pageCanvases);
+    } else {
+      // For PDF: build single multi-page PDF and share
+      var jsPDF = window.jspdf.jsPDF;
+      var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+      pageCanvases.forEach(function(canvas, i) {
+        if (i > 0) pdf.addPage();
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      });
+      var blob = pdf.output('blob');
+      triggerWhatsAppShare(blob, 'pdf');
+    }
+  });
+}
+
+function shareImages(pageCanvases) {
+  // Convert all page canvases to files
+  var files = [];
+  var pending = pageCanvases.length;
+  var base = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata' : 'marriage_biodata';
+
+  pageCanvases.forEach(function(canvas, i) {
+    canvas.toBlob(function(blob) {
+      if (!blob) blob = dataURLToBlob(canvas.toDataURL('image/png'));
+      var fname = pageCanvases.length > 1 ? base + '_page' + (i + 1) + '.png' : base + '.png';
+      files[i] = new File([blob], fname, { type: 'image/png' });
+      pending--;
+      if (pending === 0) {
+        // All files ready
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: files })) {
+          navigator.share({
+            files: files,
+            title: 'Marriage Biodata',
+            text: (formData.fullName || 'Marriage') + ' - Biodata'
+          }).catch(function(err) {
+            if (err.name !== 'AbortError') {
+              // Fallback — download all images
+              downloadImagesSequentially(pageCanvases, 0);
+            }
+          });
+        } else {
+          // Web Share not available — download images and open WhatsApp
+          downloadImagesSequentially(pageCanvases, 0);
+          var msg = encodeURIComponent('Marriage Biodata - ' + (formData.fullName || '') + '\n\nPlease find the biodata images attached.');
+          setTimeout(function() {
+            window.open('https://api.whatsapp.com/send?text=' + msg, '_blank');
+          }, pageCanvases.length * 800 + 300);
+        }
+      }
+    }, 'image/png');
   });
 }
 
@@ -1601,7 +1866,6 @@ function triggerWhatsAppShare(blob, type) {
   var filename = getFileName(ext);
   var file = new File([blob], filename, { type: mime });
 
-  // Method 1: Web Share API with file (works on mobile + some desktop browsers)
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({
       files: [file],
@@ -1609,26 +1873,19 @@ function triggerWhatsAppShare(blob, type) {
       text: (formData.fullName || 'Marriage') + ' - Biodata'
     }).catch(function(err) {
       if (err.name !== 'AbortError') {
-        // Share cancelled or failed — use fallback
         whatsAppFallback(blob, filename, ext);
       }
     });
   } else {
-    // Method 2: Download file + open WhatsApp Web with pre-filled message
     whatsAppFallback(blob, filename, ext);
   }
 }
 
 function whatsAppFallback(blob, filename, ext) {
-  // Download the file first
   triggerDownload(blob, filename);
-
-  // Open WhatsApp with a pre-filled message
   var name = formData.fullName || 'Marriage Biodata';
   var message = encodeURIComponent('Marriage Biodata - ' + name + '\n\nPlease find the biodata ' + ext.toUpperCase() + ' attached.');
   var whatsappUrl = 'https://api.whatsapp.com/send?text=' + message;
-
-  // Small delay so download starts before WhatsApp opens
   setTimeout(function() {
     window.open(whatsappUrl, '_blank');
   }, 500);
@@ -1683,9 +1940,12 @@ function loadAutoSave() {
   } catch(e) {}
 }
 
-// Override updatePreview to also auto-save
-var _origUpdate = updatePreview;
-updatePreview = function() { _origUpdate(); autoSave(); };
+// Rescale preview pages on window resize
+window.addEventListener('resize', function() {
+  document.querySelectorAll('#preview-pages .preview-inner, #mobile-preview-pages .preview-inner').forEach(function(inner) {
+    scalePreviewToFit(inner);
+  });
+});
 
 // INIT
 loadAutoSave();
