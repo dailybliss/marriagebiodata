@@ -188,6 +188,84 @@ textarea.field-input { resize: vertical; min-height: 60px; }
   .preview-panel { flex: 0 0 320px; }
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+/* PAYMENT MODAL */
+.payment-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(20,10,5,0.7);
+  backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; padding: 16px;
+}
+.payment-overlay.open { display: flex; }
+.payment-card {
+  background: #fff; border-radius: 16px; max-width: 380px; width: 100%;
+  padding: 32px 24px; text-align: center; box-shadow: 0 8px 40px rgba(20,10,5,0.3); position: relative;
+}
+.payment-close {
+  position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; color: var(--text-mid);
+}
+.payment-close:hover { background: rgba(0,0,0,0.1); }
+.payment-close svg { width: 16px; height: 16px; }
+.payment-icon { margin-bottom: 16px; }
+.payment-icon svg { width: 48px; height: 48px; color: var(--rose); }
+.payment-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+.payment-subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+.payment-price { font-size: 36px; font-weight: 700; color: var(--rose); margin-bottom: 4px; }
+.payment-price-note { font-size: 12px; color: var(--text-light); margin-bottom: 24px; }
+.payment-pay-btn {
+  width: 100%; padding: 14px; background: var(--rose); color: #fff; border: none;
+  border-radius: 12px; font-size: 15px; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; transition: background var(--transition); display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+}
+.payment-pay-btn:hover { background: var(--rose-light); }
+.payment-pay-btn svg { width: 18px; height: 18px; }
+.payment-features { display: flex; justify-content: center; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+.payment-feature { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-light); }
+.payment-feature svg { width: 14px; height: 14px; color: var(--green); }
+
+/* SUCCESS MODAL */
+.success-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(20,10,5,0.7);
+  backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; padding: 16px;
+}
+.success-overlay.open { display: flex; }
+.success-card {
+  background: #fff; border-radius: 16px; max-width: 380px; width: 100%;
+  padding: 32px 24px; text-align: center; box-shadow: 0 8px 40px rgba(20,10,5,0.3);
+}
+.success-check { width: 64px; height: 64px; border-radius: 50%; background: var(--green-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.success-check svg { width: 32px; height: 32px; color: var(--green); }
+.success-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+.success-subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 24px; }
+.success-actions { display: flex; flex-direction: column; gap: 10px; }
+.success-btn {
+  width: 100%; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  font-family: var(--font-body); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 8px; transition: all var(--transition);
+}
+.success-btn svg { width: 18px; height: 18px; }
+.success-btn-download { background: var(--rose); color: #fff; border: none; }
+.success-btn-download:hover { background: var(--rose-light); }
+.success-btn-share { background: #fff; color: #25D366; border: 2px solid #25D366; }
+.success-btn-share:hover { background: #E8F8ED; }
+.success-btn-export { background: #fff; color: var(--text-mid); border: 1px solid var(--border); }
+.success-btn-export:hover { border-color: var(--rose); color: var(--rose); }
+.success-note { font-size: 11px; color: var(--text-light); margin-top: 16px; line-height: 1.6; }
+
+/* GENERATING OVERLAY */
+.generating-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(255,253,247,0.95);
+  z-index: 250; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+}
+.generating-overlay.open { display: flex; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--rose); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.generating-text { font-size: 14px; color: var(--text-mid); font-weight: 500; }
+</style>
 </head>
 <body>
 
@@ -219,6 +297,21 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
   <!-- FORM PANEL -->
   <div class="form-panel">
+
+    <!-- RELIGIOUS ICON -->
+    <div class="form-card" id="sec-icon">
+      <div class="form-card-header" onclick="toggleCollapse('sec-icon')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+          Religious icon
+        </div>
+        <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+      </div>
+      <div class="form-card-body">
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">Appears at the top of your biodata</div>
+        <div class="icon-select" id="icon-select-top"></div>
+      </div>
+    </div>
 
     <!-- PHOTO SECTION -->
     <div class="form-card" id="sec-photo">
@@ -541,9 +634,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
         <div class="field-label" style="margin-top:16px;margin-bottom:8px">Display font</div>
         <div class="font-select" id="font-select"></div>
-
-        <div class="field-label" style="margin-top:16px;margin-bottom:8px">Religious icon</div>
-        <div class="icon-select" id="icon-select"></div>
       </div>
     </div>
 
@@ -600,6 +690,75 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
 <!-- HIDDEN FILE INPUT FOR IMPORT -->
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<!-- PAYMENT MODAL -->
+<div class="payment-overlay" id="payment-overlay" onclick="closePayment(event)">
+  <div class="payment-card" onclick="event.stopPropagation()">
+    <button class="payment-close" onclick="closePayment()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+    </button>
+    <div class="payment-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </div>
+    <div class="payment-title">Download your biodata</div>
+    <div class="payment-subtitle">High-quality PDF, no watermark</div>
+    <div class="payment-price">₹99</div>
+    <div class="payment-price-note">One-time payment &middot; No subscription</div>
+    <button class="payment-pay-btn" onclick="initiatePayment()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Pay ₹99 &amp; Download
+    </button>
+    <div class="payment-features">
+      <div class="payment-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+        UPI / Card
+      </div>
+      <div class="payment-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+        Instant download
+      </div>
+      <div class="payment-feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+        Secure payment
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <div class="success-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20,6 9,17 4,12"/></svg>
+    </div>
+    <div class="success-title">Payment successful!</div>
+    <div class="success-subtitle">Your biodata is ready</div>
+    <div class="success-actions">
+      <button class="success-btn success-btn-download" onclick="downloadPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+      <button class="success-btn success-btn-share" onclick="sharePDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share on WhatsApp
+      </button>
+      <button class="success-btn success-btn-export" onclick="exportData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        Export data for reuse
+      </button>
+    </div>
+    <div class="success-note">Your data is saved in your browser. Export it to reuse next time without retyping.</div>
+  </div>
+</div>
+
+<!-- GENERATING OVERLAY -->
+<div class="generating-overlay" id="generating-overlay">
+  <div class="spinner"></div>
+  <div class="generating-text">Generating your biodata...</div>
+</div>
+
+<!-- HIDDEN RENDER CONTAINER FOR PDF -->
+<div id="pdf-render-container" style="position:fixed;left:-9999px;top:0;width:595px;height:842px;overflow:hidden;"></div>
 
 <script>
 // ===== STATE =====
@@ -697,7 +856,7 @@ function renderFontSelect() {
 }
 
 function renderIconSelect() {
-  var el = document.getElementById('icon-select');
+  var el = document.getElementById('icon-select-top');
   el.innerHTML = '';
   iconOptions.forEach(function(ic) {
     var btn = document.createElement('button');
@@ -1075,17 +1234,210 @@ function handleImport(e) {
   e.target.value = '';
 }
 
-// ===== DOWNLOAD / SHARE =====
+// ===== PAYMENT STATE =====
+var paymentDone = false;
+var generatedPDFBlob = null;
+var RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXX'; // Replace with your Razorpay Key ID
+var PAYMENT_AMOUNT = 9900; // ₹99 in paise
+
+// ===== PAYMENT FLOW =====
 function handleDownload() {
-  alert('Payment flow will be integrated here.\n\nAfter payment:\n1. Watermark is removed\n2. PDF is generated using html2canvas + jsPDF\n3. File downloads automatically');
+  if (paymentDone) {
+    downloadPDF();
+    return;
+  }
+  openPayment();
 }
 
 function handleShare() {
-  if (navigator.share) {
-    alert('After payment, the PDF will be shared via the Web Share API (WhatsApp, etc.)');
-  } else {
-    alert('Sharing is available on mobile devices after payment.');
+  if (paymentDone) {
+    sharePDF();
+    return;
   }
+  openPayment();
+}
+
+function openPayment() {
+  document.getElementById('payment-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePayment(e) {
+  if (e && e.target !== document.getElementById('payment-overlay') && !e.target.closest('.payment-close')) return;
+  document.getElementById('payment-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function initiatePayment() {
+  closePayment();
+
+  var options = {
+    key: RAZORPAY_KEY,
+    amount: PAYMENT_AMOUNT,
+    currency: 'INR',
+    name: 'Marriage Biodata Creator',
+    description: 'Biodata PDF Download',
+    image: '',
+    handler: function(response) {
+      // Payment successful
+      paymentDone = true;
+      // Store payment info
+      try {
+        var paymentInfo = {
+          paymentId: response.razorpay_payment_id,
+          paidAt: new Date().toISOString(),
+          amount: PAYMENT_AMOUNT / 100
+        };
+        localStorage.setItem('biodata_payment', JSON.stringify(paymentInfo));
+      } catch(e) {}
+      onPaymentSuccess();
+    },
+    prefill: {
+      name: formData.fullName || '',
+      contact: formData.phone || ''
+    },
+    theme: {
+      color: '#8B1A3A'
+    },
+    modal: {
+      ondismiss: function() {
+        // User closed Razorpay modal without paying
+      }
+    }
+  };
+
+  try {
+    var rzp = new Razorpay(options);
+    rzp.on('payment.failed', function(response) {
+      alert('Payment failed. Please try again.\n\nYour biodata is saved and waiting.');
+    });
+    rzp.open();
+  } catch(e) {
+    // Razorpay not loaded (e.g. ad blocker) — fallback message
+    alert('Payment gateway could not load. Please disable any ad blockers and try again.\n\nIf the issue persists, contact support.');
+  }
+}
+
+function onPaymentSuccess() {
+  // Show success modal
+  document.getElementById('success-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ===== PDF GENERATION =====
+function generatePDF(callback) {
+  document.getElementById('generating-overlay').classList.add('open');
+
+  // Build a clean render (no watermark) in the offscreen container
+  var container = document.getElementById('pdf-render-container');
+  var html = buildPreviewHTML();
+  // Remove watermark SVG from the HTML
+  html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
+  container.innerHTML = html;
+
+  // Wait for fonts and images to load
+  setTimeout(function() {
+    html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+      width: 595,
+      height: 842,
+      logging: false
+    }).then(function(canvas) {
+      var jsPDF = window.jspdf.jsPDF;
+      var pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      var pdfWidth = 210; // A4 width in mm
+      var pdfHeight = 297; // A4 height in mm
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+      generatedPDFBlob = pdf.output('blob');
+      container.innerHTML = '';
+      document.getElementById('generating-overlay').classList.remove('open');
+
+      if (callback) callback();
+    }).catch(function(err) {
+      console.error('PDF generation error:', err);
+      document.getElementById('generating-overlay').classList.remove('open');
+      alert('Failed to generate PDF. Please try again.');
+    });
+  }, 500);
+}
+
+function downloadPDF() {
+  if (generatedPDFBlob) {
+    triggerDownload(generatedPDFBlob);
+    return;
+  }
+  generatePDF(function() {
+    triggerDownload(generatedPDFBlob);
+  });
+}
+
+function triggerDownload(blob) {
+  var name = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata.pdf' : 'marriage_biodata.pdf';
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
+
+// ===== SHARE =====
+function sharePDF() {
+  if (generatedPDFBlob) {
+    triggerShare(generatedPDFBlob);
+    return;
+  }
+  generatePDF(function() {
+    triggerShare(generatedPDFBlob);
+  });
+}
+
+function triggerShare(blob) {
+  var name = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata.pdf' : 'marriage_biodata.pdf';
+  var file = new File([blob], name, { type: 'application/pdf' });
+
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({
+      files: [file],
+      title: 'Marriage Biodata',
+      text: (formData.fullName || 'Marriage') + ' - Biodata'
+    }).catch(function(err) {
+      // User cancelled share or share failed — fallback to download
+      if (err.name !== 'AbortError') {
+        triggerDownload(blob);
+      }
+    });
+  } else {
+    // Web Share API not supported — fallback to download
+    triggerDownload(blob);
+    alert('Sharing is not supported on this browser. The PDF has been downloaded instead — you can share it from your files.');
+  }
+}
+
+// ===== CHECK EXISTING PAYMENT =====
+function checkExistingPayment() {
+  try {
+    var saved = localStorage.getItem('biodata_payment');
+    if (saved) {
+      var info = JSON.parse(saved);
+      if (info.paymentId) {
+        paymentDone = true;
+      }
+    }
+  } catch(e) {}
 }
 
 // ===== AUTO-SAVE (debounced) =====
@@ -1130,6 +1482,7 @@ updatePreview = function() { _origUpdate(); autoSave(); };
 
 // INIT
 loadAutoSave();
+checkExistingPayment();
 init();
 </script>
 
