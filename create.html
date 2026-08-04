@@ -1377,6 +1377,17 @@ function renderCleanBiodata(callback) {
   container.style.display = 'block';
   container.innerHTML = html;
 
+  // Fix aspect-ratio elements: set explicit pixel heights that html2canvas can read
+  var photoEls = container.querySelectorAll('.pv-photo');
+  photoEls.forEach(function(photo) {
+    var w = photo.offsetWidth;
+    if (w > 0) {
+      var ratio = customize.photoSize === 'small' ? 3.5/3 : customize.photoSize === 'large' ? 4/3 : 3.7/3;
+      photo.style.height = Math.round(w * ratio) + 'px';
+      photo.style.aspectRatio = 'auto';
+    }
+  });
+
   var mobile = isMobile();
   var renderScale = mobile ? 1 : 2;
   var delay = mobile ? 1200 : 500;
@@ -1394,7 +1405,30 @@ function renderCleanBiodata(callback) {
         scrollX: 0,
         scrollY: 0,
         x: 0,
-        y: 0
+        y: 0,
+        onclone: function(clonedDoc) {
+          // Fix aspect-ratio photos which html2canvas can't compute (causes 0-height error)
+          var clonedContainer = clonedDoc.getElementById('pdf-render-container');
+          if (clonedContainer) {
+            var photos = clonedContainer.querySelectorAll('.pv-photo');
+            photos.forEach(function(photo) {
+              var w = photo.offsetWidth;
+              if (w > 0) {
+                // Compute height from the original element's actual rendered size
+                var origPhoto = container.querySelector('.pv-photo');
+                var h = origPhoto ? origPhoto.offsetHeight : w * 1.23;
+                photo.style.height = (h || w * 1.23) + 'px';
+                photo.style.aspectRatio = 'auto';
+              }
+              var img = photo.querySelector('img');
+              if (img) {
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+              }
+            });
+          }
+        }
       }).then(function(canvas) {
         try {
           canvas.toBlob(function(imgBlob) {
