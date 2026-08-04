@@ -1436,22 +1436,32 @@ function renderCleanBiodata(callback) {
         }
       }).then(function(canvas) {
         try {
-          canvas.toBlob(function(imgBlob) {
-            generatedImageBlob = imgBlob;
-          }, 'image/png');
-
+          // Generate PDF blob (synchronous)
           var jsPDF = window.jspdf.jsPDF;
           var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
           var imgData = canvas.toDataURL('image/jpeg', 0.92);
           pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
           generatedPDFBlob = pdf.output('blob');
 
-          container.innerHTML = '';
-          container.style.display = 'none';
-          document.body.style.overflow = origOverflow;
-          window.scrollTo(scrollX, scrollY);
-          document.getElementById('generating-overlay').classList.remove('open');
-          if (callback) callback();
+          var finish = function() {
+            container.innerHTML = '';
+            container.style.display = 'none';
+            document.body.style.overflow = origOverflow;
+            window.scrollTo(scrollX, scrollY);
+            document.getElementById('generating-overlay').classList.remove('open');
+            if (callback) callback();
+          };
+
+          // Generate image blob (async) — wait for it before finishing
+          canvas.toBlob(function(imgBlob) {
+            if (imgBlob) {
+              generatedImageBlob = imgBlob;
+            } else {
+              // toBlob can return null on some browsers — fall back to dataURL conversion
+              generatedImageBlob = dataURLToBlob(canvas.toDataURL('image/png'));
+            }
+            finish();
+          }, 'image/png');
         } catch(innerErr) {
           console.error('PDF creation error:', innerErr);
           container.innerHTML = '';
@@ -1507,7 +1517,22 @@ function getFileName(ext) {
   return base + '.' + ext;
 }
 
+function dataURLToBlob(dataURL) {
+  var parts = dataURL.split(',');
+  var mime = parts[0].match(/:(.*?);/)[1];
+  var binary = atob(parts[1]);
+  var array = new Uint8Array(binary.length);
+  for (var i = 0; i < binary.length; i++) {
+    array[i] = binary.charCodeAt(i);
+  }
+  return new Blob([array], { type: mime });
+}
+
 function triggerDownload(blob, filename) {
+  if (!blob) {
+    alert('The file is not ready yet. Please try again.');
+    return;
+  }
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
