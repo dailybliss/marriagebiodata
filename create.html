@@ -1393,100 +1393,107 @@ function renderCleanBiodata(callback) {
     }
   });
 
-  var mobile = isMobile();
-  var renderScale = mobile ? 1 : 2;
-  var delay = mobile ? 1200 : 500;
+  var delay = isMobile() ? 1200 : 500;
+
+  // Cleanup helper used by every exit path
+  var cleanup = function() {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    document.body.style.overflow = origOverflow;
+    window.scrollTo(scrollX, scrollY);
+    document.getElementById('generating-overlay').classList.remove('open');
+  };
+
+  // Try high resolution first; step down only if the device can't handle it.
+  // Scale 3 ≈ 213 DPI on A4 — crisp text on zoom and print.
+  var scaleAttempts = [3, 2, 1.5];
+
+  function attemptRender(attemptIdx) {
+    var renderScale = scaleAttempts[attemptIdx];
+    html2canvas(container, {
+      scale: renderScale,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#FFFFFF',
+      width: 595,
+      height: 842,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0,
+      onclone: function(clonedDoc) {
+        // Fix aspect-ratio photos which html2canvas can't compute (causes 0-height error)
+        var clonedContainer = clonedDoc.getElementById('pdf-render-container');
+        if (clonedContainer) {
+          var photos = clonedContainer.querySelectorAll('.pv-photo');
+          photos.forEach(function(photo) {
+            var w = photo.offsetWidth;
+            if (w > 0) {
+              var origPhoto = container.querySelector('.pv-photo');
+              var h = origPhoto ? origPhoto.offsetHeight : w * 1.23;
+              photo.style.height = (h || w * 1.23) + 'px';
+              photo.style.aspectRatio = 'auto';
+            }
+            var img = photo.querySelector('img');
+            if (img) {
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.style.objectFit = 'cover';
+            }
+          });
+        }
+      }
+    }).then(function(canvas) {
+      // Validate the canvas actually rendered at this scale
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        throw new Error('Empty canvas at scale ' + renderScale);
+      }
+      try {
+        // Generate PDF blob (synchronous)
+        var jsPDF = window.jspdf.jsPDF;
+        var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+        generatedPDFBlob = pdf.output('blob');
+
+        // Generate image blob (async) — wait for it before finishing
+        canvas.toBlob(function(imgBlob) {
+          if (imgBlob) {
+            generatedImageBlob = imgBlob;
+          } else {
+            generatedImageBlob = dataURLToBlob(canvas.toDataURL('image/png'));
+          }
+          cleanup();
+          if (callback) callback();
+        }, 'image/png');
+      } catch(innerErr) {
+        // PDF/blob creation failed (likely memory at this scale) — try lower scale
+        console.error('Blob creation failed at scale ' + renderScale + ':', innerErr);
+        if (attemptIdx < scaleAttempts.length - 1) {
+          attemptRender(attemptIdx + 1);
+        } else {
+          cleanup();
+          alert('Could not create the file. Please try again.\n\nError: ' + (innerErr.message || innerErr));
+        }
+      }
+    }).catch(function(err) {
+      console.error('Render failed at scale ' + renderScale + ':', err);
+      if (attemptIdx < scaleAttempts.length - 1) {
+        attemptRender(attemptIdx + 1);
+      } else {
+        cleanup();
+        alert('Failed to generate. Please try again.\n\nError: ' + (err.message || err));
+      }
+    });
+  }
 
   setTimeout(function() {
     try {
-      html2canvas(container, {
-        scale: renderScale,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        width: 595,
-        height: 842,
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        onclone: function(clonedDoc) {
-          // Fix aspect-ratio photos which html2canvas can't compute (causes 0-height error)
-          var clonedContainer = clonedDoc.getElementById('pdf-render-container');
-          if (clonedContainer) {
-            var photos = clonedContainer.querySelectorAll('.pv-photo');
-            photos.forEach(function(photo) {
-              var w = photo.offsetWidth;
-              if (w > 0) {
-                // Compute height from the original element's actual rendered size
-                var origPhoto = container.querySelector('.pv-photo');
-                var h = origPhoto ? origPhoto.offsetHeight : w * 1.23;
-                photo.style.height = (h || w * 1.23) + 'px';
-                photo.style.aspectRatio = 'auto';
-              }
-              var img = photo.querySelector('img');
-              if (img) {
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-              }
-            });
-          }
-        }
-      }).then(function(canvas) {
-        try {
-          // Generate PDF blob (synchronous)
-          var jsPDF = window.jspdf.jsPDF;
-          var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-          var imgData = canvas.toDataURL('image/jpeg', 0.92);
-          pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-          generatedPDFBlob = pdf.output('blob');
-
-          var finish = function() {
-            container.innerHTML = '';
-            container.style.display = 'none';
-            document.body.style.overflow = origOverflow;
-            window.scrollTo(scrollX, scrollY);
-            document.getElementById('generating-overlay').classList.remove('open');
-            if (callback) callback();
-          };
-
-          // Generate image blob (async) — wait for it before finishing
-          canvas.toBlob(function(imgBlob) {
-            if (imgBlob) {
-              generatedImageBlob = imgBlob;
-            } else {
-              // toBlob can return null on some browsers — fall back to dataURL conversion
-              generatedImageBlob = dataURLToBlob(canvas.toDataURL('image/png'));
-            }
-            finish();
-          }, 'image/png');
-        } catch(innerErr) {
-          console.error('PDF creation error:', innerErr);
-          container.innerHTML = '';
-          container.style.display = 'none';
-          document.body.style.overflow = origOverflow;
-          window.scrollTo(scrollX, scrollY);
-          document.getElementById('generating-overlay').classList.remove('open');
-          alert('Could not create the file. Please try again.\n\nError: ' + (innerErr.message || innerErr));
-        }
-      }).catch(function(err) {
-        console.error('html2canvas error:', err);
-        container.innerHTML = '';
-        container.style.display = 'none';
-        document.body.style.overflow = origOverflow;
-        window.scrollTo(scrollX, scrollY);
-        document.getElementById('generating-overlay').classList.remove('open');
-        alert('Failed to generate. Please try again.\n\nError: ' + (err.message || err));
-      });
+      attemptRender(0);
     } catch(outerErr) {
       console.error('Render error:', outerErr);
-      container.innerHTML = '';
-      container.style.display = 'none';
-      document.body.style.overflow = origOverflow;
-      window.scrollTo(scrollX, scrollY);
-      document.getElementById('generating-overlay').classList.remove('open');
+      cleanup();
       alert('Something went wrong. Please try again.\n\nError: ' + (outerErr.message || outerErr));
     }
   }, delay);
@@ -1655,4 +1662,4 @@ init();
 </script>
 
 </body>
-</html>
+  </html>
