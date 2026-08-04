@@ -750,7 +750,7 @@ body {
       <div class="modal-preview" id="modal-preview"></div>
       <div class="modal-footer">
         <span class="modal-template-name" id="modal-name"></span>
-        <button class="modal-use-btn" onclick="alert('Takes user to builder with this template')">Use this template</button>
+        <button class="modal-use-btn" onclick="useTemplate()">Use this template</button>
       </div>
     </div>
   </div>
@@ -806,7 +806,7 @@ body {
   </div>
 
   <!-- BOTTOM CTA -->
-  <button class="bottom-cta" onclick="alert('Takes user to builder')">Create your biodata now</button>
+  <button class="bottom-cta" onclick="window.location.href='create.html'">Create your biodata now</button>
 
   <!-- TRUST BAR -->
   <div class="trust-bar">
@@ -1037,6 +1037,11 @@ function closeModal(e) {
   if (e && e.target !== document.getElementById('modal') && !e.target.closest('.modal-close')) return;
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+function useTemplate() {
+  var t = state.filteredTemplates[state.selectedIdx];
+  window.location.href = 'create.html?template=' + t.id;
 }
 
 document.addEventListener('keydown', function(e) {
