@@ -977,20 +977,43 @@ function buildPreviewHTML(includeWatermark, forExport) {
   var bgLight = hexToLight(ac);
   var bgMid = hexToMid(ac);
   var goldColor = adjustBrightness(ac, 40);
-  var fontSize = 'font-size:';
   var name = formData.fullName || 'Your Name';
+
+  // Font sizes: preview uses tiny clamp values for the small panel,
+  // export uses proper A4 document sizes (595px = 210mm A4 width)
+  var sz = forExport ? {
+    icon: '18px',
+    name: '28px',
+    tagline: '10px',
+    secTitle: '13px',
+    field: '12px',
+    fieldLabel: '10px',
+    pref: '12px'
+  } : {
+    icon: 'clamp(8px,2.5%,14px)',
+    name: 'clamp(10px,4.5%,22px)',
+    tagline: 'clamp(5px,1.5%,8px)',
+    secTitle: 'clamp(5px,2%,10px)',
+    field: 'clamp(5px,1.8%,9px)',
+    fieldLabel: 'clamp(4px,1.5%,8px)',
+    pref: 'clamp(5px,1.8%,9px)'
+  };
+
+  // Store for helper functions
+  window._sz = sz;
 
   var photoW = customize.photoSize === 'small' ? '22%' : customize.photoSize === 'large' ? '32%' : '27%';
   var photoRadius = customize.photoShape === 'circle' ? '50%' : customize.photoShape === 'oval' ? '50% 50% 8px 8px' : '6px';
 
+  var contentPadding = forExport ? '30px 36px 24px' : '5% 6% 4%';
   var html = '<div class="pv-bg" style="background:' + bgLight + ';border:1px solid ' + bgMid + '"></div>';
-  html += '<div class="pv-content" style="color:' + darken(ac, 0.15) + '">';
+  html += '<div class="pv-content" style="color:' + darken(ac, 0.15) + ';padding:' + contentPadding + '">';
 
   // Header
   html += '<div class="pv-header">';
-  if (customize.icon) html += '<div class="pv-icon" style="' + fontSize + 'clamp(8px,2.5%,14px);color:' + ac + '">' + customize.icon + '</div>';
-  html += '<div class="pv-name" style="font-family:\'' + df + '\',serif;' + fontSize + 'clamp(10px,4.5%,22px);color:' + ac + '">' + name + '</div>';
-  html += '<div class="pv-tagline" style="' + fontSize + 'clamp(5px,1.5%,8px);letter-spacing:2px;text-transform:uppercase;color:' + ac + '">Biodata for Marriage</div>';
+  if (customize.icon) html += '<div class="pv-icon" style="font-size:' + sz.icon + ';color:' + ac + '">' + customize.icon + '</div>';
+  html += '<div class="pv-name" style="font-family:\'' + df + '\',serif;font-size:' + sz.name + ';color:' + ac + '">' + name + '</div>';
+  html += '<div class="pv-tagline" style="font-size:' + sz.tagline + ';letter-spacing:2px;text-transform:uppercase;color:' + ac + '">Biodata for Marriage</div>';
   html += '</div>';
 
   // Divider — gradient looks nicer in preview, but html2canvas renders gradients
@@ -1056,13 +1079,15 @@ function renderPhoto(ac, bgMid, width, radius, extra) {
 }
 
 function renderSectionTitle(title, ac, bgMid) {
-  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:clamp(5px,2%,10px);color:' + ac + ';border-bottom:1px solid ' + bgMid + '55">' + title + '</div>';
+  var sz = window._sz;
+  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:' + sz.secTitle + ';color:' + ac + ';border-bottom:1px solid ' + bgMid + '55">' + title + '</div>';
 }
 
 function renderFieldRow(label, value, ac, bgMid) {
   if (!value) return '';
-  return '<div class="pv-field" style="font-size:clamp(5px,1.8%,9px);line-height:1.5;margin-bottom:0.5%">' +
-    '<span class="pv-field-label" style="color:' + darken(ac, 0.3) + ';font-size:clamp(4px,1.5%,8px);min-width:30%">' + label + ':</span>' +
+  var sz = window._sz;
+  return '<div class="pv-field" style="font-size:' + sz.field + ';line-height:1.6;margin-bottom:1px">' +
+    '<span class="pv-field-label" style="color:' + darken(ac, 0.3) + ';font-size:' + sz.fieldLabel + ';min-width:30%">' + label + ':</span>' +
     '<span style="color:' + darken(ac, 0.15) + '">' + value + '</span></div>';
 }
 
@@ -1131,8 +1156,9 @@ function renderHoroscopeFields(ac, bgMid) {
 
 function renderPreferencesFields(ac, bgMid) {
   if (!formData.partnerPrefs) return '';
+  var sz = window._sz;
   var html = '<div class="pv-section">' + renderSectionTitle('Partner preferences', ac, bgMid);
-  html += '<div style="font-size:clamp(5px,1.8%,9px);line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.partnerPrefs + '</div>';
+  html += '<div style="font-size:' + sz.pref + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.partnerPrefs + '</div>';
   html += '</div>';
   return html;
 }
