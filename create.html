@@ -771,7 +771,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 </div>
 
 <!-- HIDDEN RENDER CONTAINER FOR PDF -->
-<div id="pdf-render-container" style="position:absolute;left:-9999px;top:0;width:595px;height:842px;overflow:hidden;z-index:-1;opacity:0;"></div>
+<div id="pdf-render-container" style="position:fixed;top:0;left:0;width:595px;height:842px;overflow:hidden;z-index:240;pointer-events:none;display:none;"></div>
 
 <script>
 // ===== STATE =====
@@ -1365,15 +1365,14 @@ function renderCleanBiodata(callback) {
   var container = document.getElementById('pdf-render-container');
   var html = buildPreviewHTML();
   html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
+
+  // Show container on-screen so mobile browsers actually render it
+  // It sits behind the generating overlay (z-index 240 vs 250)
+  container.style.display = 'block';
   container.innerHTML = html;
 
-  // Lower scale on mobile to avoid canvas size limits and memory issues
   var renderScale = isMobile() ? 1.5 : 2;
-  var renderWidth = 595;
-  var renderHeight = 842;
-
-  // Give extra time on mobile for fonts/rendering
-  var delay = isMobile() ? 800 : 500;
+  var delay = isMobile() ? 1000 : 500;
 
   setTimeout(function() {
     try {
@@ -1382,19 +1381,16 @@ function renderCleanBiodata(callback) {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#FFFFFF',
-        width: renderWidth,
-        height: renderHeight,
+        width: 595,
+        height: 842,
         logging: false,
-        imageTimeout: 5000,
-        removeContainer: false
+        imageTimeout: 5000
       }).then(function(canvas) {
         try {
-          // Generate image blob
           canvas.toBlob(function(imgBlob) {
             generatedImageBlob = imgBlob;
           }, 'image/png');
 
-          // Generate PDF
           var jsPDF = window.jspdf.jsPDF;
           var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
           var imgData = canvas.toDataURL('image/jpeg', 0.92);
@@ -1402,19 +1398,21 @@ function renderCleanBiodata(callback) {
           generatedPDFBlob = pdf.output('blob');
 
           container.innerHTML = '';
+          container.style.display = 'none';
           document.getElementById('generating-overlay').classList.remove('open');
           if (callback) callback();
         } catch(innerErr) {
           console.error('PDF creation error:', innerErr);
           container.innerHTML = '';
+          container.style.display = 'none';
           document.getElementById('generating-overlay').classList.remove('open');
           alert('Could not create the file. Please try again or use a different browser.');
         }
       }).catch(function(err) {
         console.error('html2canvas error:', err);
         container.innerHTML = '';
+        container.style.display = 'none';
         document.getElementById('generating-overlay').classList.remove('open');
-        // Retry once at lower scale on failure
         if (renderScale > 1) {
           retryAtLowScale(callback);
         } else {
@@ -1424,6 +1422,7 @@ function renderCleanBiodata(callback) {
     } catch(outerErr) {
       console.error('Render setup error:', outerErr);
       container.innerHTML = '';
+      container.style.display = 'none';
       document.getElementById('generating-overlay').classList.remove('open');
       alert('Something went wrong. Please try again.');
     }
@@ -1436,6 +1435,7 @@ function retryAtLowScale(callback) {
   var container = document.getElementById('pdf-render-container');
   var html = buildPreviewHTML();
   html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
+  container.style.display = 'block';
   container.innerHTML = html;
 
   setTimeout(function() {
@@ -1459,15 +1459,17 @@ function retryAtLowScale(callback) {
       generatedPDFBlob = pdf.output('blob');
 
       container.innerHTML = '';
+      container.style.display = 'none';
       document.getElementById('generating-overlay').classList.remove('open');
       if (callback) callback();
     }).catch(function(err) {
       console.error('Retry also failed:', err);
       container.innerHTML = '';
+      container.style.display = 'none';
       document.getElementById('generating-overlay').classList.remove('open');
       alert('Failed to generate. Please try using Chrome browser or try on a different device.');
     });
-  }, 800);
+  }, 1000);
 }
 
 function downloadPDF() {
