@@ -285,10 +285,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Export</span>
       </button>
-      <button class="nav-btn nav-btn-primary" onclick="handleDownload()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Download</span>
-      </button>
     </div>
   </div>
 </nav>
@@ -647,9 +643,13 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="preview-inner" id="preview-inner"></div>
       </div>
       <div class="preview-actions">
-        <button class="preview-action-btn btn-download" onclick="handleDownload()">
+        <button class="preview-action-btn btn-download" onclick="handleDownload('pdf')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download PDF
+          PDF
+        </button>
+        <button class="preview-action-btn btn-download" onclick="handleDownload('image')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Image
         </button>
         <button class="preview-action-btn btn-share" onclick="handleShare()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -676,9 +676,13 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="preview-inner" id="mobile-preview-inner"></div>
     </div>
     <div class="mobile-preview-actions">
-      <button class="preview-action-btn btn-download" style="flex:1" onclick="handleDownload()">
+      <button class="preview-action-btn btn-download" style="flex:1" onclick="handleDownload('pdf')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download PDF
+        PDF
+      </button>
+      <button class="preview-action-btn btn-download" style="flex:1" onclick="handleDownload('image')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Image
       </button>
       <button class="preview-action-btn btn-share" onclick="handleShare()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -737,6 +741,10 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <button class="success-btn success-btn-download" onclick="downloadPDF()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download PDF
+      </button>
+      <button class="success-btn success-btn-download" onclick="downloadImage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Download Image
       </button>
       <button class="success-btn success-btn-share" onclick="sharePDF()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
@@ -1237,15 +1245,19 @@ function handleImport(e) {
 // ===== PAYMENT STATE =====
 var paymentDone = false;
 var generatedPDFBlob = null;
+var generatedImageBlob = null;
 var RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXX'; // Replace with your Razorpay Key ID
 var PAYMENT_AMOUNT = 9900; // ₹99 in paise
 
 // ===== PAYMENT FLOW =====
-function handleDownload() {
+function handleDownload(type) {
   if (paymentDone) {
-    downloadPDF();
+    if (type === 'image') downloadImage();
+    else downloadPDF();
     return;
   }
+  // Store requested type so we can use it after payment
+  window._downloadType = type || 'pdf';
   openPayment();
 }
 
@@ -1254,6 +1266,7 @@ function handleShare() {
     sharePDF();
     return;
   }
+  window._downloadType = 'share';
   openPayment();
 }
 
@@ -1271,6 +1284,22 @@ function closePayment(e) {
 function initiatePayment() {
   closePayment();
 
+  // === TESTING MODE: Hardcoded success ===
+  // Remove this block and uncomment Razorpay block below when going live
+  paymentDone = true;
+  try {
+    var paymentInfo = {
+      paymentId: 'test_' + Date.now(),
+      paidAt: new Date().toISOString(),
+      amount: PAYMENT_AMOUNT / 100
+    };
+    localStorage.setItem('biodata_payment', JSON.stringify(paymentInfo));
+  } catch(e) {}
+  onPaymentSuccess();
+  return;
+  // === END TESTING MODE ===
+
+  /* === LIVE RAZORPAY — uncomment when ready ===
   var options = {
     key: RAZORPAY_KEY,
     amount: PAYMENT_AMOUNT,
@@ -1279,9 +1308,7 @@ function initiatePayment() {
     description: 'Biodata PDF Download',
     image: '',
     handler: function(response) {
-      // Payment successful
       paymentDone = true;
-      // Store payment info
       try {
         var paymentInfo = {
           paymentId: response.razorpay_payment_id,
@@ -1300,9 +1327,7 @@ function initiatePayment() {
       color: '#8B1A3A'
     },
     modal: {
-      ondismiss: function() {
-        // User closed Razorpay modal without paying
-      }
+      ondismiss: function() {}
     }
   };
 
@@ -1313,9 +1338,9 @@ function initiatePayment() {
     });
     rzp.open();
   } catch(e) {
-    // Razorpay not loaded (e.g. ad blocker) — fallback message
-    alert('Payment gateway could not load. Please disable any ad blockers and try again.\n\nIf the issue persists, contact support.');
+    alert('Payment gateway could not load. Please disable any ad blockers and try again.');
   }
+  === END LIVE RAZORPAY === */
 }
 
 function onPaymentSuccess() {
@@ -1325,17 +1350,14 @@ function onPaymentSuccess() {
 }
 
 // ===== PDF GENERATION =====
-function generatePDF(callback) {
+function renderCleanBiodata(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
-  // Build a clean render (no watermark) in the offscreen container
   var container = document.getElementById('pdf-render-container');
   var html = buildPreviewHTML();
-  // Remove watermark SVG from the HTML
   html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
   container.innerHTML = html;
 
-  // Wait for fonts and images to load
   setTimeout(function() {
     html2canvas(container, {
       scale: 2,
@@ -1346,48 +1368,59 @@ function generatePDF(callback) {
       height: 842,
       logging: false
     }).then(function(canvas) {
+      // Cache image blob
+      canvas.toBlob(function(imgBlob) {
+        generatedImageBlob = imgBlob;
+      }, 'image/png');
+
+      // Generate PDF
       var jsPDF = window.jspdf.jsPDF;
-      var pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
+      var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       var imgData = canvas.toDataURL('image/jpeg', 0.95);
-      var pdfWidth = 210; // A4 width in mm
-      var pdfHeight = 297; // A4 height in mm
-
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
       generatedPDFBlob = pdf.output('blob');
+
       container.innerHTML = '';
       document.getElementById('generating-overlay').classList.remove('open');
-
       if (callback) callback();
     }).catch(function(err) {
-      console.error('PDF generation error:', err);
+      console.error('Generation error:', err);
       document.getElementById('generating-overlay').classList.remove('open');
-      alert('Failed to generate PDF. Please try again.');
+      alert('Failed to generate. Please try again.');
     });
   }, 500);
 }
 
 function downloadPDF() {
   if (generatedPDFBlob) {
-    triggerDownload(generatedPDFBlob);
+    triggerDownload(generatedPDFBlob, getFileName('pdf'));
     return;
   }
-  generatePDF(function() {
-    triggerDownload(generatedPDFBlob);
+  renderCleanBiodata(function() {
+    triggerDownload(generatedPDFBlob, getFileName('pdf'));
   });
 }
 
-function triggerDownload(blob) {
-  var name = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata.pdf' : 'marriage_biodata.pdf';
+function downloadImage() {
+  if (generatedImageBlob) {
+    triggerDownload(generatedImageBlob, getFileName('png'));
+    return;
+  }
+  renderCleanBiodata(function() {
+    triggerDownload(generatedImageBlob, getFileName('png'));
+  });
+}
+
+function getFileName(ext) {
+  var base = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata' : 'marriage_biodata';
+  return base + '.' + ext;
+}
+
+function triggerDownload(blob, filename) {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = name;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1400,13 +1433,13 @@ function sharePDF() {
     triggerShare(generatedPDFBlob);
     return;
   }
-  generatePDF(function() {
+  renderCleanBiodata(function() {
     triggerShare(generatedPDFBlob);
   });
 }
 
 function triggerShare(blob) {
-  var name = formData.fullName ? formData.fullName.replace(/[^a-zA-Z0-9]/g, '_') + '_biodata.pdf' : 'marriage_biodata.pdf';
+  var name = getFileName('pdf');
   var file = new File([blob], name, { type: 'application/pdf' });
 
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1417,12 +1450,12 @@ function triggerShare(blob) {
     }).catch(function(err) {
       // User cancelled share or share failed — fallback to download
       if (err.name !== 'AbortError') {
-        triggerDownload(blob);
+        triggerDownload(blob, getFileName('pdf'));
       }
     });
   } else {
     // Web Share API not supported — fallback to download
-    triggerDownload(blob);
+    triggerDownload(blob, getFileName('pdf'));
     alert('Sharing is not supported on this browser. The PDF has been downloaded instead — you can share it from your files.');
   }
 }
