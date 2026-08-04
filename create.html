@@ -1451,7 +1451,7 @@ function triggerWhatsAppShare(blob, type) {
   var filename = getFileName(ext);
   var file = new File([blob], filename, { type: mime });
 
-  // Try Web Share API with WhatsApp as the target
+  // Method 1: Web Share API with file (works on mobile + some desktop browsers)
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({
       files: [file],
@@ -1459,16 +1459,29 @@ function triggerWhatsAppShare(blob, type) {
       text: (formData.fullName || 'Marriage') + ' - Biodata'
     }).catch(function(err) {
       if (err.name !== 'AbortError') {
-        // Share failed — fallback: download the file and prompt manual WhatsApp share
-        triggerDownload(blob, filename);
-        alert('File downloaded. Open WhatsApp and share the file from your gallery/files.');
+        // Share cancelled or failed — use fallback
+        whatsAppFallback(blob, filename, ext);
       }
     });
   } else {
-    // Web Share API not available (desktop browser) — download and prompt
-    triggerDownload(blob, filename);
-    alert('File downloaded. Open WhatsApp and share the ' + ext.toUpperCase() + ' from your files.');
+    // Method 2: Download file + open WhatsApp Web with pre-filled message
+    whatsAppFallback(blob, filename, ext);
   }
+}
+
+function whatsAppFallback(blob, filename, ext) {
+  // Download the file first
+  triggerDownload(blob, filename);
+
+  // Open WhatsApp with a pre-filled message
+  var name = formData.fullName || 'Marriage Biodata';
+  var message = encodeURIComponent('Marriage Biodata - ' + name + '\n\nPlease find the biodata ' + ext.toUpperCase() + ' attached.');
+  var whatsappUrl = 'https://api.whatsapp.com/send?text=' + message;
+
+  // Small delay so download starts before WhatsApp opens
+  setTimeout(function() {
+    window.open(whatsappUrl, '_blank');
+  }, 500);
 }
 
 // ===== CHECK EXISTING PAYMENT =====
