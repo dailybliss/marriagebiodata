@@ -970,7 +970,8 @@ function updatePreview() {
   if (mobilePreview) mobilePreview.innerHTML = html;
 }
 
-function buildPreviewHTML() {
+function buildPreviewHTML(includeWatermark) {
+  if (includeWatermark === undefined) includeWatermark = true;
   var ac = customize.accentColor;
   var df = customize.displayFont;
   var bgLight = hexToLight(ac);
@@ -1026,11 +1027,13 @@ function buildPreviewHTML() {
 
   html += '</div>';
 
-  // Watermark
-  html += '<svg class="pv-watermark" viewBox="0 0 595 842" xmlns="http://www.w3.org/2000/svg">';
-  html += '<defs><pattern id="wm" x="0" y="0" width="260" height="140" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">';
-  html += '<text x="10" y="35" font-family="Inter,sans-serif" font-size="16" fill="' + ac + '" opacity="0.08" font-weight="700" letter-spacing="3">PREVIEW</text>';
-  html += '</pattern></defs><rect width="595" height="842" fill="url(#wm)"/></svg>';
+  // Watermark (skip for final PDF/image render)
+  if (includeWatermark) {
+    html += '<svg class="pv-watermark" viewBox="0 0 595 842" xmlns="http://www.w3.org/2000/svg">';
+    html += '<defs><pattern id="wm" x="0" y="0" width="260" height="140" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">';
+    html += '<text x="10" y="35" font-family="Inter,sans-serif" font-size="16" fill="' + ac + '" opacity="0.08" font-weight="700" letter-spacing="3">PREVIEW</text>';
+    html += '</pattern></defs><rect width="595" height="842" fill="url(#wm)"/></svg>';
+  }
 
   return html;
 }
@@ -1363,8 +1366,7 @@ function renderCleanBiodata(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
   var container = document.getElementById('pdf-render-container');
-  var html = buildPreviewHTML();
-  html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
+  var html = buildPreviewHTML(false);
 
   // Save scroll position and prevent scrollbar from container overflow
   var scrollX = window.scrollX;
