@@ -982,13 +982,13 @@ function buildPreviewHTML(includeWatermark, forExport) {
   // Font sizes: preview uses tiny clamp values for the small panel,
   // export uses proper A4 document sizes (595px = 210mm A4 width)
   var sz = forExport ? {
-    icon: '18px',
-    name: '28px',
-    tagline: '10px',
-    secTitle: '13px',
-    field: '12px',
-    fieldLabel: '10px',
-    pref: '12px'
+    icon: '26px',
+    name: '40px',
+    tagline: '14px',
+    secTitle: '19px',
+    field: '17px',
+    fieldLabel: '15px',
+    pref: '17px'
   } : {
     icon: 'clamp(8px,2.5%,14px)',
     name: 'clamp(10px,4.5%,22px)',
@@ -1001,11 +1001,14 @@ function buildPreviewHTML(includeWatermark, forExport) {
 
   // Store for helper functions
   window._sz = sz;
+  window._forExport = forExport;
 
   var photoW = customize.photoSize === 'small' ? '22%' : customize.photoSize === 'large' ? '32%' : '27%';
   var photoRadius = customize.photoShape === 'circle' ? '50%' : customize.photoShape === 'oval' ? '50% 50% 8px 8px' : '6px';
 
-  var contentPadding = forExport ? '30px 36px 24px' : '5% 6% 4%';
+  var contentPadding = forExport ? '32px 40px 28px' : '5% 6% 4%';
+  var sectionStyle = forExport ? ' style="margin-bottom:14px"' : '';
+  window._sectionStyle = sectionStyle;
   var html = '<div class="pv-bg" style="background:' + bgLight + ';border:1px solid ' + bgMid + '"></div>';
   html += '<div class="pv-content" style="color:' + darken(ac, 0.15) + ';padding:' + contentPadding + '">';
 
@@ -1080,19 +1083,22 @@ function renderPhoto(ac, bgMid, width, radius, extra) {
 
 function renderSectionTitle(title, ac, bgMid) {
   var sz = window._sz;
-  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:' + sz.secTitle + ';color:' + ac + ';border-bottom:1px solid ' + bgMid + '55">' + title + '</div>';
+  var mb = window._forExport ? '8px' : '1%';
+  var pb = window._forExport ? '5px' : '1%';
+  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:' + sz.secTitle + ';color:' + ac + ';border-bottom:1px solid ' + bgMid + '55;margin-bottom:' + mb + ';padding-bottom:' + pb + '">' + title + '</div>';
 }
 
 function renderFieldRow(label, value, ac, bgMid) {
   if (!value) return '';
   var sz = window._sz;
-  return '<div class="pv-field" style="font-size:' + sz.field + ';line-height:1.6;margin-bottom:1px">' +
-    '<span class="pv-field-label" style="color:' + darken(ac, 0.3) + ';font-size:' + sz.fieldLabel + ';min-width:30%">' + label + ':</span>' +
+  var mb = window._forExport ? '5px' : '1px';
+  return '<div class="pv-field" style="font-size:' + sz.field + ';line-height:1.6;margin-bottom:' + mb + '">' +
+    '<span class="pv-field-label" style="color:' + darken(ac, 0.3) + ';font-size:' + sz.fieldLabel + ';min-width:32%">' + label + ':</span>' +
     '<span style="color:' + darken(ac, 0.15) + '">' + value + '</span></div>';
 }
 
 function renderPersonalFields(ac, bgMid) {
-  var html = '<div class="pv-section">' + renderSectionTitle('Personal details', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Personal details', ac, bgMid);
   var dob = formData.dob ? formatDate(formData.dob) : '';
   if (!hiddenFields.dob && dob) html += renderFieldRow('Date of birth', dob, ac, bgMid);
   if (!hiddenFields.height && formData.height) html += renderFieldRow('Height', formData.height, ac, bgMid);
@@ -1109,7 +1115,7 @@ function renderPersonalFields(ac, bgMid) {
 function renderEducationFields(ac, bgMid) {
   var hasData = formData.qualification || formData.college || formData.occupation || formData.company || formData.income;
   if (!hasData) return '';
-  var html = '<div class="pv-section">' + renderSectionTitle('Education & career', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Education & career', ac, bgMid);
   if (!hiddenFields.qualification && formData.qualification) html += renderFieldRow('Education', formData.qualification, ac, bgMid);
   if (!hiddenFields.college && formData.college) html += renderFieldRow('College', formData.college, ac, bgMid);
   if (!hiddenFields.occupation && formData.occupation) html += renderFieldRow('Occupation', formData.occupation, ac, bgMid);
@@ -1122,7 +1128,7 @@ function renderEducationFields(ac, bgMid) {
 function renderFamilyFields(ac, bgMid) {
   var hasData = formData.fatherName || formData.motherName || formData.familyType || formData.nativePlace || siblings.length;
   if (!hasData) return '';
-  var html = '<div class="pv-section">' + renderSectionTitle('Family details', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Family details', ac, bgMid);
   if (!hiddenFields.fatherName && formData.fatherName) {
     var fVal = formData.fatherName + (formData.fatherOccupation && !hiddenFields.fatherOccupation ? ' — ' + formData.fatherOccupation : '');
     html += renderFieldRow("Father's name", fVal, ac, bgMid);
@@ -1146,7 +1152,7 @@ function renderFamilyFields(ac, bgMid) {
 function renderHoroscopeFields(ac, bgMid) {
   var hasData = formData.rashi || formData.nakshatra || formData.manglik;
   if (!hasData) return '';
-  var html = '<div class="pv-section">' + renderSectionTitle('Horoscope', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Horoscope', ac, bgMid);
   if (formData.rashi) html += renderFieldRow('Rashi', formData.rashi, ac, bgMid);
   if (formData.nakshatra) html += renderFieldRow('Nakshatra', formData.nakshatra, ac, bgMid);
   if (formData.manglik) html += renderFieldRow('Manglik', formData.manglik, ac, bgMid);
@@ -1157,7 +1163,7 @@ function renderHoroscopeFields(ac, bgMid) {
 function renderPreferencesFields(ac, bgMid) {
   if (!formData.partnerPrefs) return '';
   var sz = window._sz;
-  var html = '<div class="pv-section">' + renderSectionTitle('Partner preferences', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Partner preferences', ac, bgMid);
   html += '<div style="font-size:' + sz.pref + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.partnerPrefs + '</div>';
   html += '</div>';
   return html;
@@ -1166,7 +1172,7 @@ function renderPreferencesFields(ac, bgMid) {
 function renderContactFields(ac, bgMid) {
   var hasData = formData.contactPerson || formData.phone || formData.address;
   if (!hasData) return '';
-  var html = '<div class="pv-section">' + renderSectionTitle('Contact information', ac, bgMid);
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Contact information', ac, bgMid);
   if (!hiddenFields.contactPerson && formData.contactPerson) {
     var cVal = formData.contactPerson + (formData.contactRelation && !hiddenFields.contactRelation ? ' (' + formData.contactRelation + ')' : '');
     html += renderFieldRow('Contact', cVal, ac, bgMid);
@@ -1688,4 +1694,4 @@ init();
 </script>
 
 </body>
-  </html>
+</html>
