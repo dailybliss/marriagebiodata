@@ -771,7 +771,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 </div>
 
 <!-- HIDDEN RENDER CONTAINER FOR PDF -->
-<div id="pdf-render-container" style="position:fixed;top:0;left:0;width:595px;height:842px;overflow:hidden;z-index:240;pointer-events:none;display:none;"></div>
+<div id="pdf-render-container" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;z-index:240;pointer-events:none;display:none;"></div>
 
 <script>
 // ===== STATE =====
@@ -1366,79 +1366,78 @@ function renderCleanBiodata(callback) {
   var html = buildPreviewHTML();
   html = html.replace(/<svg class="pv-watermark"[\s\S]*?<\/svg>/, '');
 
-  // On mobile, scale the container down to fit the viewport
-  // html2canvas still reads the internal 595x842 layout
-  var mobile = isMobile();
-  if (mobile) {
-    var viewW = window.innerWidth;
-    var containerScale = Math.min(viewW / 595, 1);
-    container.style.transformOrigin = 'top left';
-    container.style.transform = 'scale(' + containerScale + ')';
-  } else {
-    container.style.transform = 'none';
-  }
+  // Save scroll position and prevent scrollbar from container overflow
+  var scrollX = window.scrollX;
+  var scrollY = window.scrollY;
+  var origOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
 
   container.style.display = 'block';
   container.innerHTML = html;
 
+  var mobile = isMobile();
   var renderScale = mobile ? 1 : 2;
   var delay = mobile ? 1200 : 500;
 
   setTimeout(function() {
-    // Reset transform before capture so html2canvas reads true dimensions
-    container.style.transform = 'none';
+    try {
+      html2canvas(container, {
+        scale: renderScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#FFFFFF',
+        width: 595,
+        height: 842,
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0
+      }).then(function(canvas) {
+        try {
+          canvas.toBlob(function(imgBlob) {
+            generatedImageBlob = imgBlob;
+          }, 'image/png');
 
-    // Small extra delay after removing transform
-    setTimeout(function() {
-      try {
-        html2canvas(container, {
-          scale: renderScale,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#FFFFFF',
-          width: 595,
-          height: 842,
-          logging: false,
-          windowWidth: 595,
-          windowHeight: 842
-        }).then(function(canvas) {
-          try {
-            canvas.toBlob(function(imgBlob) {
-              generatedImageBlob = imgBlob;
-            }, 'image/png');
+          var jsPDF = window.jspdf.jsPDF;
+          var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          var imgData = canvas.toDataURL('image/jpeg', 0.92);
+          pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+          generatedPDFBlob = pdf.output('blob');
 
-            var jsPDF = window.jspdf.jsPDF;
-            var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            var imgData = canvas.toDataURL('image/jpeg', 0.92);
-            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-            generatedPDFBlob = pdf.output('blob');
-
-            container.innerHTML = '';
-            container.style.display = 'none';
-            document.getElementById('generating-overlay').classList.remove('open');
-            if (callback) callback();
-          } catch(innerErr) {
-            console.error('PDF creation error:', innerErr);
-            container.innerHTML = '';
-            container.style.display = 'none';
-            document.getElementById('generating-overlay').classList.remove('open');
-            alert('Could not create the file. Please try again.');
-          }
-        }).catch(function(err) {
-          console.error('html2canvas error:', err);
           container.innerHTML = '';
           container.style.display = 'none';
+          document.body.style.overflow = origOverflow;
+          window.scrollTo(scrollX, scrollY);
           document.getElementById('generating-overlay').classList.remove('open');
-          alert('Failed to generate. Please try again. If the issue persists, try using Chrome browser.\n\nError: ' + (err.message || err));
-        });
-      } catch(outerErr) {
-        console.error('Render error:', outerErr);
+          if (callback) callback();
+        } catch(innerErr) {
+          console.error('PDF creation error:', innerErr);
+          container.innerHTML = '';
+          container.style.display = 'none';
+          document.body.style.overflow = origOverflow;
+          window.scrollTo(scrollX, scrollY);
+          document.getElementById('generating-overlay').classList.remove('open');
+          alert('Could not create the file. Please try again.\n\nError: ' + (innerErr.message || innerErr));
+        }
+      }).catch(function(err) {
+        console.error('html2canvas error:', err);
         container.innerHTML = '';
         container.style.display = 'none';
+        document.body.style.overflow = origOverflow;
+        window.scrollTo(scrollX, scrollY);
         document.getElementById('generating-overlay').classList.remove('open');
-        alert('Something went wrong. Please try again.\n\nError: ' + (outerErr.message || outerErr));
-      }
-    }, mobile ? 300 : 100);
+        alert('Failed to generate. Please try again.\n\nError: ' + (err.message || err));
+      });
+    } catch(outerErr) {
+      console.error('Render error:', outerErr);
+      container.innerHTML = '';
+      container.style.display = 'none';
+      document.body.style.overflow = origOverflow;
+      window.scrollTo(scrollX, scrollY);
+      document.getElementById('generating-overlay').classList.remove('open');
+      alert('Something went wrong. Please try again.\n\nError: ' + (outerErr.message || outerErr));
+    }
   }, delay);
 }
 
