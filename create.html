@@ -970,7 +970,7 @@ function updatePreview() {
   if (mobilePreview) mobilePreview.innerHTML = html;
 }
 
-function buildPreviewHTML(includeWatermark) {
+function buildPreviewHTML(includeWatermark, forExport) {
   if (includeWatermark === undefined) includeWatermark = true;
   var ac = customize.accentColor;
   var df = customize.displayFont;
@@ -993,8 +993,13 @@ function buildPreviewHTML(includeWatermark) {
   html += '<div class="pv-tagline" style="' + fontSize + 'clamp(5px,1.5%,8px);letter-spacing:2px;text-transform:uppercase;color:' + ac + '">Biodata for Marriage</div>';
   html += '</div>';
 
-  // Divider
-  html += '<div class="pv-divider" style="background:linear-gradient(to right,transparent,' + goldColor + ',transparent)"></div>';
+  // Divider — gradient looks nicer in preview, but html2canvas renders gradients
+  // via createPattern which fails on mobile. Use a solid line for export.
+  if (forExport) {
+    html += '<div class="pv-divider" style="background:' + goldColor + ';opacity:0.55"></div>';
+  } else {
+    html += '<div class="pv-divider" style="background:linear-gradient(to right,transparent,' + goldColor + ',transparent)"></div>';
+  }
 
   // Body
   var photoOnRight = customize.photoPosition === 'right';
@@ -1366,7 +1371,7 @@ function renderCleanBiodata(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
   var container = document.getElementById('pdf-render-container');
-  var html = buildPreviewHTML(false);
+  var html = buildPreviewHTML(false, true);
 
   // Save scroll position and prevent scrollbar from container overflow
   var scrollX = window.scrollX;
