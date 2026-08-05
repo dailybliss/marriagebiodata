@@ -342,6 +342,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
                 <button class="photo-opt-btn active" onclick="setPhotoOpt('shape', 'rounded', this)">Rounded</button>
                 <button class="photo-opt-btn" onclick="setPhotoOpt('shape', 'circle', this)">Circle</button>
                 <button class="photo-opt-btn" onclick="setPhotoOpt('shape', 'oval', this)">Oval</button>
+                <button class="photo-opt-btn" onclick="setPhotoOpt('shape', 'rectangle', this)" id="shape-rectangle-btn">Rectangle</button>
               </div>
             </div>
             <div class="photo-opt-group">
@@ -867,6 +868,7 @@ function init() {
   renderColorPresets();
   renderFontSelect();
   renderIconSelect();
+  updateRectangleAvailability();
   updatePreview();
 }
 
@@ -947,7 +949,59 @@ function setPhotoOpt(type, value, btn) {
   var row = btn.parentElement;
   row.querySelectorAll('.photo-opt-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
+
+  // Rectangle shape is only valid for left/right positions.
+  // If user picks center while rectangle is selected, fall back to rounded.
+  if (type === 'position' && value === 'center' && customize.photoShape === 'rectangle') {
+    customize.photoShape = 'rounded';
+    syncShapeButtons();
+  }
+  // If user picks rectangle while position is center, switch position to left.
+  if (type === 'shape' && value === 'rectangle' && customize.photoPosition === 'center') {
+    customize.photoPosition = 'left';
+    syncPositionButtons();
+  }
+  updateRectangleAvailability();
   updatePreview();
+}
+
+// Enable/disable the Rectangle button based on current position
+function updateRectangleAvailability() {
+  var rectBtn = document.getElementById('shape-rectangle-btn');
+  if (!rectBtn) return;
+  if (customize.photoPosition === 'center') {
+    rectBtn.style.opacity = '0.4';
+    rectBtn.style.pointerEvents = 'none';
+    rectBtn.title = 'Rectangle is available only for left/right positions';
+  } else {
+    rectBtn.style.opacity = '';
+    rectBtn.style.pointerEvents = '';
+    rectBtn.title = '';
+  }
+}
+
+function syncShapeButtons() {
+  document.querySelectorAll('.photo-opt-group').forEach(function(group) {
+    var label = group.querySelector('label');
+    if (label && label.textContent === 'Shape') {
+      group.querySelectorAll('.photo-opt-btn').forEach(function(b) {
+        var isActive = b.getAttribute('onclick').indexOf("'" + customize.photoShape + "'") >= 0;
+        b.classList.toggle('active', isActive);
+      });
+    }
+  });
+}
+
+function syncPositionButtons() {
+  document.querySelectorAll('.photo-opt-group').forEach(function(group) {
+    var label = group.querySelector('label');
+    if (label && label.textContent === 'Position') {
+      group.querySelectorAll('.photo-opt-btn').forEach(function(b) {
+        var isActive = b.getAttribute('onclick').indexOf("'" + customize.photoPosition + "'") >= 0;
+        b.classList.toggle('active', isActive);
+      });
+    }
+  });
 }
 
 function handlePhotoUpload(e) {
@@ -1189,34 +1243,38 @@ function buildPreviewHTML(includeWatermark, forExport) {
     html += '<div class="pv-divider" style="background:linear-gradient(to right,transparent,' + goldColor + ',transparent)"></div>';
   }
 
-  // Body
+  // Body layout
   var photoOnRight = customize.photoPosition === 'right';
   var photoOnCenter = customize.photoPosition === 'center';
 
   if (photoOnCenter) {
-    // Photo centered above details
+    // Photo centered above all details
     html += renderPhoto(ac, bgMid, photoW, photoShape, 'margin:0 auto 3%');
     html += '<div class="pv-details">';
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
+    html += renderFamilyFields(ac, bgMid);
+    if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
+    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
+    html += renderContactFields(ac, bgMid);
     html += '</div>';
   } else {
-    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
-    html += renderPhoto(ac, bgMid, photoW, photoShape, '');
-    html += '<div class="pv-details">';
+    // Float the photo so text flows alongside AND wraps underneath it — no gap.
+    var floatSide = photoOnRight ? 'right' : 'left';
+    var floatMargin = photoOnRight ? 'margin:0 0 10px 16px' : 'margin:0 16px 10px 0';
+    html += '<div class="pv-body-float" style="display:block">';
+    html += renderPhoto(ac, bgMid, photoW, photoShape, 'float:' + floatSide + ';' + floatMargin);
+    // All sections flow in one continuous column, wrapping under the photo
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
-    html += '</div>';
+    html += renderFamilyFields(ac, bgMid);
+    if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
+    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
+    html += renderContactFields(ac, bgMid);
+    // Clear the float so nothing overlaps
+    html += '<div style="clear:both"></div>';
     html += '</div>';
   }
-
-  // Full-width sections
-  html += '<div class="pv-full-sections">';
-  html += renderFamilyFields(ac, bgMid);
-  if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
-  if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
-  html += renderContactFields(ac, bgMid);
-  html += '</div>';
 
   html += '</div>';
 
@@ -1232,19 +1290,25 @@ function buildPreviewHTML(includeWatermark, forExport) {
 }
 
 function renderPhoto(ac, bgMid, width, shape, extra) {
-  // Aspect ratio and border-radius per shape.
-  // Kept moderately short so the photo sits alongside the Personal+Education
-  // columns without pushing later sections down.
+  // Shape → aspect ratio + border-radius.
+  // rounded  = rounded square (1:1)
+  // circle   = circle (1:1, full radius)
+  // oval     = vertical ellipse
+  // rectangle= tall vertical rectangle (~3x the rounded-square height), left/right only
   var aspect, radius;
   if (shape === 'circle') {
-    aspect = '1 / 1';          // perfect square → circle
+    aspect = '1 / 1';
     radius = '50%';
   } else if (shape === 'oval') {
-    aspect = '3 / 3.5';        // portrait ellipse
+    aspect = '3 / 3.5';
     radius = '50%';
-  } else {
-    aspect = '3 / 3.3';        // rounded rectangle
+  } else if (shape === 'rectangle') {
+    aspect = '3 / 4';
     radius = '10px';
+  } else {
+    // rounded square
+    aspect = '1 / 1';
+    radius = '12px';
   }
   var html = '<div class="pv-photo" style="width:' + width + ';aspect-ratio:' + aspect + ';background:' + hexToLight(ac) + ';border:1px solid ' + bgMid + ';border-radius:' + radius + ';overflow:hidden;' + extra + '">';
   if (photoData) {
@@ -1254,6 +1318,14 @@ function renderPhoto(ac, bgMid, width, shape, extra) {
   }
   html += '</div>';
   return html;
+}
+
+// Aspect ratio (height/width) per shape — used for html2canvas height fix
+function photoRatioForShape(shape) {
+  if (shape === 'circle') return 1;
+  if (shape === 'oval') return 3.5/3;
+  if (shape === 'rectangle') return 4/3;
+  return 1; // rounded square
 }
 
 function renderSectionTitle(title, ac, bgMid) {
@@ -1609,10 +1681,7 @@ function renderAllPages(callback) {
   photoEls.forEach(function(photo) {
     var w = photo.offsetWidth;
     if (w > 0) {
-      var ratio;
-      if (customize.photoShape === 'circle') ratio = 1;
-      else if (customize.photoShape === 'oval') ratio = 3.5/3;
-      else ratio = 3.3/3;
+      var ratio = photoRatioForShape(customize.photoShape);
       photo.style.height = Math.round(w * ratio) + 'px';
       photo.style.aspectRatio = 'auto';
     }
