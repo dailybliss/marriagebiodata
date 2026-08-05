@@ -1046,31 +1046,8 @@ function updatePreview() {
 var currentBreakPoints = [0, 842]; // default single page
 
 function measurePages() {
-  var measureContainer = document.getElementById('pdf-render-container');
-  var html = buildPreviewHTML(false, true);
-  measureContainer.style.display = 'block';
-  measureContainer.style.height = 'auto';
-  measureContainer.innerHTML = html;
-
-  var pvContent = measureContainer.querySelector('.pv-content');
-  void (pvContent && pvContent.offsetHeight);
-  var naturalHeight = pvContent ? pvContent.scrollHeight : 842;
-
-  var pageHeight = 842;
-  if (maxPages === 1) {
-    currentPageCount = 1;
-  } else {
-    currentPageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
-    if (currentPageCount < 1) currentPageCount = 1;
-  }
-
-  // Calculate clean break points for preview windowing
-  currentBreakPoints = getCleanBreakPoints(measureContainer, pageHeight, currentPageCount);
-
-  measureContainer.innerHTML = '';
-  measureContainer.style.display = 'none';
-  measureContainer.style.height = '842px';
-
+  var result = buildPaginatedContent();
+  currentPageCount = result.pageCount;
   updatePageIndicator();
 }
 
@@ -1134,20 +1111,15 @@ function scalePreviewToFit(previewEl) {
 
 // Build content windowed to a specific page
 function buildPagedPreviewHTML(pageNum, includeWatermark) {
-  var contentHTML = buildPreviewHTML(false, true);
+  var contentHTML = paginatedCache.html || buildPreviewHTML(false, true);
   var pageHeight = 842;
   var totalHeight = currentPageCount * pageHeight;
-
-  // Clean break window for this page
-  var breakTop = (currentBreakPoints && currentBreakPoints[pageNum - 1]) || (pageNum - 1) * pageHeight;
-  var breakBottom = (currentBreakPoints && currentBreakPoints[pageNum]) || pageNum * pageHeight;
-  var sliceHeight = breakBottom - breakTop;
+  var offset = (pageNum - 1) * pageHeight;
 
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
-  // Clip layer: only reveal this page's slice (breakTop → breakBottom), rest is blank
-  html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + sliceHeight + 'px;overflow:hidden;">';
-  // Content offset upward so this page's slice starts at the top
-  html += '<div style="position:absolute;top:' + (-breakTop) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+  // Clip to exactly one page height, offset to show this page
+  html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + pageHeight + 'px;overflow:hidden;">';
+  html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
   html += contentHTML;
   html += '</div>';
   html += '</div>';
@@ -1661,38 +1633,80 @@ var generatedPageCanvases = [];  // array of per-page canvases
 // Find clean page break points between sections.
 // Returns an array of [start0, start1, start2, ..., end] pixel positions
 // where we can safely slice without cutting through any text.
-function getCleanBreakPoints(container, pageHeight, pageCount) {
-  var containerTop = container.getBoundingClientRect().top + window.scrollY;
-
-  // Collect top positions of all section divs relative to the container
-  var sectionTops = [];
-  var sections = container.querySelectorAll('.pv-section');
-  sections.forEach(function(sec) {
-    var rect = sec.getBoundingClientRect();
-    var top = rect.top + window.scrollY - containerTop;
-    if (top > 5) sectionTops.push(top);
-  });
-  sectionTops.sort(function(a, b) { return a - b; });
-
-  var breakPoints = [0];
-  for (var p = 1; p < pageCount; p++) {
-    var idealBoundary = breakPoints[p - 1] + pageHeight; // max this page can hold
-    var prevBreak = breakPoints[p - 1];
-    var bestBreak = idealBoundary; // fallback: hard cut at max height
-
-    // Find the last section that starts AFTER the previous break and
-    // BEFORE (or at) the ideal boundary — that's the cleanest split.
-    for (var i = sectionTops.length - 1; i >= 0; i--) {
-      if (sectionTops[i] > prevBreak + 20 && sectionTops[i] <= idealBoundary) {
-        bestBreak = sectionTops[i];
-        break;
-      }
+// Fix photo aspect-ratio in a container (html2canvas can't read CSS aspect-ratio)
+function fixPhotoHeights(container) {
+  var photoEls = container.querySelectorAll('.pv-photo');
+  photoEls.forEach(function(photo) {
+    var w = photo.offsetWidth;
+    if (w > 0) {
+      var ratio = photoRatioForShape(customize.photoShape);
+      photo.style.height = Math.round(w * ratio) + 'px';
+      photo.style.aspectRatio = 'auto';
     }
-    breakPoints.push(bestBreak);
+  });
+}
+
+// Build content and paginate it so no section is split across a page boundary.
+// Sections that would straddle a boundary get pushed (via margin-top) to the next page.
+// Returns { html, pageCount } — html has spacers baked in and can be sliced at clean 842px intervals.
+var paginatedCache = { html: '', pageCount: 1 };
+
+function buildPaginatedContent() {
+  var mc = document.getElementById('pdf-render-container');
+  mc.style.display = 'block';
+  mc.style.height = 'auto';
+  mc.style.overflow = 'visible';
+  mc.style.transform = 'none';
+  mc.innerHTML = buildPreviewHTML(false, true);
+
+  fixPhotoHeights(mc);
+
+  var pvContent = mc.querySelector('.pv-content');
+  void pvContent.offsetHeight;
+
+  var pageHeight = 842;
+  var contentTop = pvContent.getBoundingClientRect().top;
+
+  if (maxPages > 1) {
+    // Push any section that crosses a page boundary onto the next page
+    var sections = Array.prototype.slice.call(mc.querySelectorAll('.pv-section'));
+    var pageBottom = pageHeight;
+    sections.forEach(function(sec) {
+      var rect = sec.getBoundingClientRect();
+      var top = rect.top - contentTop;
+      var bottom = rect.bottom - contentTop;
+      var h = rect.height;
+
+      // Advance to the page this section starts on
+      while (top >= pageBottom) pageBottom += pageHeight;
+
+      // If it crosses the boundary and fits within a single page, push it down
+      if (bottom > pageBottom && h <= pageHeight) {
+        var push = pageBottom - top + 6; // small gap into next page
+        var curMt = parseFloat(getComputedStyle(sec).marginTop) || 0;
+        sec.style.marginTop = (curMt + push) + 'px';
+        pageBottom += pageHeight;
+      }
+    });
+    void pvContent.offsetHeight;
   }
-  // Last page ends at the true content end (or the page grid end, whichever is larger)
-  breakPoints.push(breakPoints[pageCount - 1] + pageHeight);
-  return breakPoints;
+
+  var naturalHeight = pvContent.scrollHeight;
+  var pageCount = (maxPages === 1) ? 1 : Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
+  if (pageCount < 1) pageCount = 1;
+
+  paginatedCache = {
+    html: mc.innerHTML,
+    pageCount: pageCount,
+    naturalHeight: naturalHeight
+  };
+
+  mc.innerHTML = '';
+  mc.style.display = 'none';
+  mc.style.height = '842px';
+  mc.style.overflow = 'hidden';
+
+  return paginatedCache;
 }
 
 function renderAllPages(callback) {
@@ -1707,41 +1721,21 @@ function renderAllPages(callback) {
   var origOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
 
-  // Build content at export size, let it grow to full natural height
-  var html = buildPreviewHTML(false, true);
+  // Build paginated content (sections pushed so none cross page boundaries)
+  var paginated = buildPaginatedContent();
+  var pageCount = paginated.pageCount;
+  var naturalHeight = paginated.naturalHeight;
+
   container.style.display = 'block';
   container.style.height = 'auto';
   container.style.overflow = 'visible';
-  container.innerHTML = html;
-
-  // Fix photo aspect-ratio (html2canvas can't read CSS aspect-ratio)
-  var photoEls = container.querySelectorAll('.pv-photo');
-  photoEls.forEach(function(photo) {
-    var w = photo.offsetWidth;
-    if (w > 0) {
-      var ratio = photoRatioForShape(customize.photoShape);
-      photo.style.height = Math.round(w * ratio) + 'px';
-      photo.style.aspectRatio = 'auto';
-    }
-  });
+  container.style.transform = 'none';
+  container.innerHTML = paginated.html;
 
   var pvContent = container.querySelector('.pv-content');
-  void pvContent.offsetHeight; // force reflow
-  var naturalHeight = pvContent.scrollHeight;
+  void pvContent.offsetHeight;
 
-  // Determine page count
-  var pageCount;
-  if (maxPages === 1) {
-    pageCount = 1;
-  } else {
-    pageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
-    if (pageCount < 1) pageCount = 1;
-  }
-
-  // Detect clean break points NOW, before any scale transform distorts measurements
-  var cleanBreakPoints = getCleanBreakPoints(container, pageHeight, pageCount);
-
-  // Now apply sizing / auto-fit transforms
+  // Sizing / auto-fit
   if (maxPages === 1) {
     if (naturalHeight > pageHeight) {
       var fitScale = (pageHeight / naturalHeight) * 0.99;
@@ -1754,16 +1748,6 @@ function renderAllPages(callback) {
     container.style.overflow = 'hidden';
   } else {
     var totalHeight = pageCount * pageHeight;
-    if (naturalHeight > totalHeight) {
-      var fit = (totalHeight / naturalHeight) * 0.99;
-      pvContent.style.transformOrigin = 'top left';
-      pvContent.style.transform = 'scale(' + fit + ')';
-      pvContent.style.width = (100 / fit) + '%';
-      // Rescale break points to match the scaled content
-      for (var bp = 0; bp < cleanBreakPoints.length; bp++) {
-        cleanBreakPoints[bp] = cleanBreakPoints[bp] * fit;
-      }
-    }
     container.style.height = totalHeight + 'px';
     container.style.overflow = 'hidden';
     var bg = container.querySelector('.pv-bg');
@@ -1820,18 +1804,14 @@ function renderAllPages(callback) {
         throw new Error('Empty canvas at scale ' + renderScale);
       }
       try {
-        // Slice the full canvas at clean break points (between sections, not through text)
+        // Sections were paginated to not cross boundaries — slice at clean page intervals
         var pageCanvases = [];
         var canvasScale = fullCanvas.height / (pageCount * pageHeight);
+        var pageCanvasHeight = Math.round(pageHeight * canvasScale);
 
         for (var p = 0; p < pageCount; p++) {
-          var sliceTop = Math.round(cleanBreakPoints[p] * canvasScale);
-          var sliceBottom = Math.round(cleanBreakPoints[p + 1] * canvasScale);
-          var sliceHeight = sliceBottom - sliceTop;
-
+          var sliceTop = Math.round(p * pageHeight * canvasScale);
           var pageCanvas = document.createElement('canvas');
-          // Each page canvas is always A4 proportions (full page height in canvas units)
-          var pageCanvasHeight = Math.round(pageHeight * canvasScale);
           pageCanvas.width = fullCanvas.width;
           pageCanvas.height = pageCanvasHeight;
           var ctx = pageCanvas.getContext('2d');
@@ -1839,8 +1819,8 @@ function renderAllPages(callback) {
           ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
           ctx.drawImage(
             fullCanvas,
-            0, sliceTop, fullCanvas.width, sliceHeight,
-            0, 0, pageCanvas.width, sliceHeight
+            0, sliceTop, fullCanvas.width, pageCanvasHeight,
+            0, 0, pageCanvas.width, pageCanvasHeight
           );
           pageCanvases.push(pageCanvas);
         }
