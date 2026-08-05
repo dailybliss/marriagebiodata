@@ -1168,9 +1168,9 @@ function buildPreviewHTML(includeWatermark, forExport) {
 
   var sz = forExport ? {
     icon: '22px',
-    name: isCursive ? '48px' : '34px',   // cursive needs bigger size for impact
+    name: isCursive ? '48px' : '34px',
     tagline: '12px',
-    secTitle: '16px',
+    secTitle: isCursive ? '20px' : '16px',
     field: '14.5px',
     fieldLabel: '13px',
     pref: '14.5px'
@@ -1178,7 +1178,7 @@ function buildPreviewHTML(includeWatermark, forExport) {
     icon: 'clamp(8px,2.5%,14px)',
     name: isCursive ? 'clamp(16px,6%,32px)' : 'clamp(10px,4.5%,22px)',
     tagline: 'clamp(5px,1.5%,8px)',
-    secTitle: 'clamp(5px,2%,10px)',
+    secTitle: isCursive ? 'clamp(8px,2.8%,14px)' : 'clamp(5px,2%,10px)',
     field: 'clamp(5px,1.8%,9px)',
     fieldLabel: 'clamp(4px,1.5%,8px)',
     pref: 'clamp(5px,1.8%,9px)'
@@ -1314,7 +1314,20 @@ function renderSectionTitle(title, ac, bgMid) {
   var sz = window._sz;
   var mb = window._forExport ? '8px' : '1%';
   var pb = window._forExport ? '5px' : '1%';
-  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:' + sz.secTitle + ';color:' + ac + ';border-bottom:1px solid ' + bgMid + '55;margin-bottom:' + mb + ';padding-bottom:' + pb + '">' + title + '</div>';
+  var isCursive = ['Dancing Script'].indexOf(customize.displayFont) >= 0;
+  // Cursive fonts look broken in uppercase with letter-spacing
+  // Use title case and remove letter-spacing for them
+  var textTransform = isCursive ? 'none' : 'uppercase';
+  var letterSpacing = isCursive ? '0.5px' : '2.5px';
+  var displayTitle = isCursive ? toTitleCase(title) : title;
+  var fontWeight = isCursive ? '700' : '600';
+  return '<div class="pv-sec-title" style="font-family:\'' + customize.displayFont + '\',serif;font-size:' + sz.secTitle + ';color:' + ac + ';border-bottom:1px solid ' + bgMid + '55;margin-bottom:' + mb + ';padding-bottom:' + pb + ';text-transform:' + textTransform + ';letter-spacing:' + letterSpacing + ';font-weight:' + fontWeight + '">' + displayTitle + '</div>';
+}
+
+function toTitleCase(str) {
+  return str.replace(/\w\S*/g, function(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
 }
 
 function renderFieldRow(label, value, ac, bgMid) {
