@@ -837,7 +837,9 @@ var templates = [
   { id: 'teal-fresh', name: 'Teal Fresh', cat: 'modern', bg: '#F0FAFA', border: '#90D0D0', accent: '#1A6B6B', gold: '#3AA8A0', fieldBg: '#B8E0E0', secBg: '#90D0D088', photoBg: '#C8EAEA', icon: '\u25C8', nameText: 'Kavya Nair', nameColor: '#1A6B6B' },
   { id: 'blush-peach', name: 'Blush Peach', cat: 'floral', bg: '#FFF8F4', border: '#E8C8A8', accent: '#8B4A2A', gold: '#D09060', fieldBg: '#F0D8C0', secBg: '#E8C8A888', photoBg: '#F4E0D0', icon: '\u2740', nameText: 'Aditi Sharma', nameColor: '#8B4A2A' },
   { id: 'slate-modern', name: 'Slate Modern', cat: 'simple', bg: '#F4F4F2', border: '#C8C8C0', accent: '#3A3A38', gold: '#888880', fieldBg: '#D8D8D2', secBg: '#C8C8C088', photoBg: '#E0E0DA', icon: '\u2022', nameText: 'Neha Gupta', nameColor: '#3A3A38' },
+  { id: 'kalash-ornate', name: 'Kalash Ornate', cat: 'traditional', bg: '#F0EAD8', border: '#C8A86C', accent: '#7B5E2A', gold: '#B8943A', fieldBg: '#E0D4B8', secBg: '#C8A86C88', photoBg: '#E8DEC8', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#7B5E2A', bgImage: 'templates/kalash-ornate.jpg' },
   { id: 'ruby-ornate', name: 'Ruby Ornate', cat: 'elegant', bg: '#FFF5F8', border: '#D8A0B0', accent: '#7B1A40', gold: '#C06080', fieldBg: '#F0C0D0', secBg: '#D8A0B088', photoBg: '#F4D0DC', icon: '\u2766', nameText: 'Shruti Iyer', nameColor: '#7B1A40' },
+  { id: 'golden-mandala', name: 'Golden Mandala', cat: 'traditional', bg: '#F0EAD8', border: '#C8A86C', accent: '#7B5E2A', gold: '#B8943A', fieldBg: '#E0D4B8', secBg: '#C8A86C88', photoBg: '#E8DEC8', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#7B5E2A', bgImage: 'templates/golden-mandala.jpg' },
 ];
 
 var state = {
@@ -849,8 +851,16 @@ var state = {
 
 function renderTemplateBg(t, el) {
   el.innerHTML = '';
-  el.style.background = t.bg;
-  el.style.border = '1px solid ' + t.border;
+  if (t.bgImage) {
+    el.style.backgroundImage = 'url(' + t.bgImage + ')';
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center top';
+    el.style.border = 'none';
+  } else {
+    el.style.backgroundImage = 'none';
+    el.style.background = t.bg;
+    el.style.border = '1px solid ' + t.border;
+  }
 }
 
 function renderHeroContent(t, container) {
@@ -891,15 +901,21 @@ function renderHeroContent(t, container) {
 function createThumb(t, i) {
   var thumb = document.createElement('div');
   thumb.className = 'thumb' + (i === state.selectedIdx ? ' active' : '');
-  thumb.style.background = t.bg;
   thumb.style.borderColor = i === state.selectedIdx ? 'var(--rose)' : 'transparent';
+  if (t.bgImage) {
+    thumb.style.backgroundImage = 'url(' + t.bgImage + ')';
+    thumb.style.backgroundSize = 'cover';
+    thumb.style.backgroundPosition = 'center top';
+  } else {
+    thumb.style.background = t.bg;
+  }
   thumb.innerHTML =
     '<div class="thumb-content">' +
-      '<div class="th-circle" style="background:' + t.photoBg + '"></div>' +
-      '<div class="th-line" style="background:' + t.fieldBg + ';width:60%"></div>' +
-      '<div class="th-line" style="background:' + t.fieldBg + ';width:45%"></div>' +
-      '<div class="th-line" style="background:' + t.fieldBg + ';width:55%"></div>' +
-      '<div class="th-line" style="background:' + t.fieldBg + ';width:40%"></div>' +
+      '<div class="th-circle" style="background:' + t.photoBg + ';opacity:0.8"></div>' +
+      '<div class="th-line" style="background:' + t.fieldBg + ';width:60%;opacity:0.8"></div>' +
+      '<div class="th-line" style="background:' + t.fieldBg + ';width:45%;opacity:0.8"></div>' +
+      '<div class="th-line" style="background:' + t.fieldBg + ';width:55%;opacity:0.8"></div>' +
+      '<div class="th-line" style="background:' + t.fieldBg + ';width:40%;opacity:0.8"></div>' +
     '</div>';
   thumb.onclick = function() { selectTemplate(i); };
   return thumb;
@@ -928,7 +944,13 @@ function renderGrid() {
     };
     var preview = document.createElement('div');
     preview.className = 'grid-preview';
-    preview.style.background = t.bg;
+    if (t.bgImage) {
+      preview.style.backgroundImage = 'url(' + t.bgImage + ')';
+      preview.style.backgroundSize = 'cover';
+      preview.style.backgroundPosition = 'center top';
+    } else {
+      preview.style.background = t.bg;
+    }
     preview.innerHTML =
       '<div class="grid-content">' +
         '<div class="gc-icon" style="color:' + t.gold + '">' + t.icon + '</div>' +
