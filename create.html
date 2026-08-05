@@ -1043,6 +1043,8 @@ function updatePreview() {
 }
 
 // Measure how many pages the content needs
+var currentBreakPoints = [0, 842]; // default single page
+
 function measurePages() {
   var measureContainer = document.getElementById('pdf-render-container');
   var html = buildPreviewHTML(false, true);
@@ -1054,10 +1056,6 @@ function measurePages() {
   void (pvContent && pvContent.offsetHeight);
   var naturalHeight = pvContent ? pvContent.scrollHeight : 842;
 
-  measureContainer.innerHTML = '';
-  measureContainer.style.display = 'none';
-  measureContainer.style.height = '842px';
-
   var pageHeight = 842;
   if (maxPages === 1) {
     currentPageCount = 1;
@@ -1065,6 +1063,13 @@ function measurePages() {
     currentPageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
     if (currentPageCount < 1) currentPageCount = 1;
   }
+
+  // Calculate clean break points for preview windowing
+  currentBreakPoints = getCleanBreakPoints(measureContainer, pageHeight, currentPageCount);
+
+  measureContainer.innerHTML = '';
+  measureContainer.style.display = 'none';
+  measureContainer.style.height = '842px';
 
   updatePageIndicator();
 }
@@ -1129,14 +1134,15 @@ function scalePreviewToFit(previewEl) {
 
 // Build content windowed to a specific page
 function buildPagedPreviewHTML(pageNum, includeWatermark) {
-  var contentHTML = buildPreviewHTML(false, true); // export-sized, no watermark
+  var contentHTML = buildPreviewHTML(false, true);
   var pageHeight = 842;
-  var offset = (pageNum - 1) * pageHeight;
   var totalHeight = currentPageCount * pageHeight;
 
+  // Use clean break points so preview matches PDF — no text cut mid-line
+  var breakTop = (currentBreakPoints && currentBreakPoints[pageNum - 1]) || (pageNum - 1) * pageHeight;
+
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
-  // Inner holder: full multi-page height, offset upward to show this page's slice
-  html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+  html += '<div style="position:absolute;top:' + (-breakTop) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
   html += contentHTML;
   html += '</div>';
 
@@ -1646,6 +1652,44 @@ var generatedPageCanvases = [];  // array of per-page canvases
 
 // Renders the full biodata, slices into pages, and produces per-page canvases.
 // Calls callback(pageCanvases[]) when done.
+// Find clean page break points between sections.
+// Returns an array of [start0, start1, start2, ..., end] pixel positions
+// where we can safely slice without cutting through any text.
+function getCleanBreakPoints(container, pageHeight, pageCount) {
+  var containerTop = container.getBoundingClientRect().top + window.scrollY;
+
+  // Collect the top positions of all section divs relative to the container
+  var sectionTops = [];
+  var sections = container.querySelectorAll('.pv-section');
+  sections.forEach(function(sec) {
+    var rect = sec.getBoundingClientRect();
+    var top = rect.top + window.scrollY - containerTop;
+    if (top > 0) sectionTops.push(top);
+  });
+  sectionTops.sort(function(a, b) { return a - b; });
+
+  // For each page boundary (at pageHeight, 2*pageHeight, etc.),
+  // find the nearest section top that falls BEFORE the boundary
+  // so we break between sections rather than through them.
+  var breakPoints = [0];
+  for (var p = 1; p < pageCount; p++) {
+    var boundary = p * pageHeight;
+    var bestBreak = boundary; // fallback: cut exactly at boundary
+
+    // Find the last section top that starts at least 20px before the boundary
+    // (gives breathing room so we don't cut on the section title line itself)
+    for (var i = sectionTops.length - 1; i >= 0; i--) {
+      if (sectionTops[i] < boundary - 20) {
+        bestBreak = sectionTops[i];
+        break;
+      }
+    }
+    breakPoints.push(bestBreak);
+  }
+  breakPoints.push(pageCount * pageHeight); // end of last page
+  return breakPoints;
+}
+
 function renderAllPages(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
@@ -1713,6 +1757,10 @@ function renderAllPages(callback) {
     if (bg) bg.style.height = totalHeight + 'px';
   }
 
+  // Detect clean page break points by measuring section top positions in the DOM
+  // before we render to canvas. We slice between sections, not through them.
+  var cleanBreakPoints = getCleanBreakPoints(container, pageHeight, pageCount);
+
   var delay = isMobile() ? 1200 : 500;
 
   var cleanup = function() {
@@ -1763,20 +1811,27 @@ function renderAllPages(callback) {
         throw new Error('Empty canvas at scale ' + renderScale);
       }
       try {
-        // Slice the full canvas into per-page canvases
+        // Slice the full canvas at clean break points (between sections, not through text)
         var pageCanvases = [];
-        var pxPerPage = fullCanvas.height / pageCount;
+        var canvasScale = fullCanvas.height / (pageCount * pageHeight);
+
         for (var p = 0; p < pageCount; p++) {
+          var sliceTop = Math.round(cleanBreakPoints[p] * canvasScale);
+          var sliceBottom = Math.round(cleanBreakPoints[p + 1] * canvasScale);
+          var sliceHeight = sliceBottom - sliceTop;
+
           var pageCanvas = document.createElement('canvas');
+          // Each page canvas is always A4 proportions (full page height in canvas units)
+          var pageCanvasHeight = Math.round(pageHeight * canvasScale);
           pageCanvas.width = fullCanvas.width;
-          pageCanvas.height = Math.round(pxPerPage);
+          pageCanvas.height = pageCanvasHeight;
           var ctx = pageCanvas.getContext('2d');
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
           ctx.drawImage(
             fullCanvas,
-            0, Math.round(p * pxPerPage), fullCanvas.width, Math.round(pxPerPage),
-            0, 0, pageCanvas.width, pageCanvas.height
+            0, sliceTop, fullCanvas.width, sliceHeight,
+            0, 0, pageCanvas.width, sliceHeight
           );
           pageCanvases.push(pageCanvas);
         }
