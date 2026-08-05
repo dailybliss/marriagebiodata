@@ -1148,8 +1148,13 @@ function buildPreviewHTML(includeWatermark, forExport) {
   window._sz = sz;
   window._forExport = forExport;
 
-  var photoW = customize.photoSize === 'small' ? '22%' : customize.photoSize === 'large' ? '32%' : '27%';
-  var photoRadius = customize.photoShape === 'circle' ? '50%' : customize.photoShape === 'oval' ? '50% 50% 8px 8px' : '6px';
+  // Photo width: slightly larger so the image is clearly visible
+  var photoW = customize.photoSize === 'small' ? '28%' : customize.photoSize === 'large' ? '40%' : '34%';
+  // Photo shape determines both border-radius and aspect ratio:
+  //  - circle: 1:1 square with full rounding
+  //  - oval: taller ellipse
+  //  - rounded: portrait rectangle with soft corners
+  var photoShape = customize.photoShape;
 
   var contentPadding = forExport ? '32px 40px 28px' : '5% 6% 4%';
   var sectionStyle = forExport ? ' style="margin-bottom:14px"' : '';
@@ -1190,14 +1195,14 @@ function buildPreviewHTML(includeWatermark, forExport) {
 
   if (photoOnCenter) {
     // Photo centered above details
-    html += renderPhoto(ac, bgMid, photoW, photoRadius, 'margin:0 auto 2%');
+    html += renderPhoto(ac, bgMid, photoW, photoShape, 'margin:0 auto 3%');
     html += '<div class="pv-details">';
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
     html += '</div>';
   } else {
-    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + '">';
-    html += renderPhoto(ac, bgMid, photoW, photoRadius, '');
+    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
+    html += renderPhoto(ac, bgMid, photoW, photoShape, '');
     html += '<div class="pv-details">';
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
@@ -1226,13 +1231,26 @@ function buildPreviewHTML(includeWatermark, forExport) {
   return html;
 }
 
-function renderPhoto(ac, bgMid, width, radius, extra) {
-  var sizeH = customize.photoSize === 'small' ? 'aspect-ratio:3/3.5' : customize.photoSize === 'large' ? 'aspect-ratio:3/4' : 'aspect-ratio:3/3.7';
-  var html = '<div class="pv-photo" style="width:' + width + ';' + sizeH + ';background:' + hexToLight(ac) + ';border:1px solid ' + bgMid + ';border-radius:' + radius + ';' + extra + '">';
-  if (photoData) {
-    html += '<img src="' + photoData + '" style="border-radius:' + radius + '">';
+function renderPhoto(ac, bgMid, width, shape, extra) {
+  // Aspect ratio and border-radius per shape.
+  // Kept moderately short so the photo sits alongside the Personal+Education
+  // columns without pushing later sections down.
+  var aspect, radius;
+  if (shape === 'circle') {
+    aspect = '1 / 1';          // perfect square → circle
+    radius = '50%';
+  } else if (shape === 'oval') {
+    aspect = '3 / 3.5';        // portrait ellipse
+    radius = '50%';
   } else {
-    html += '<svg viewBox="0 0 24 24" fill="none" stroke="' + bgMid + '" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>';
+    aspect = '3 / 3.3';        // rounded rectangle
+    radius = '10px';
+  }
+  var html = '<div class="pv-photo" style="width:' + width + ';aspect-ratio:' + aspect + ';background:' + hexToLight(ac) + ';border:1px solid ' + bgMid + ';border-radius:' + radius + ';overflow:hidden;' + extra + '">';
+  if (photoData) {
+    html += '<img src="' + photoData + '" style="width:100%;height:100%;object-fit:cover;border-radius:' + radius + '">';
+  } else {
+    html += '<svg viewBox="0 0 24 24" fill="none" stroke="' + bgMid + '" stroke-width="1.5" style="width:36%"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>';
   }
   html += '</div>';
   return html;
@@ -1586,12 +1604,15 @@ function renderAllPages(callback) {
   container.style.overflow = 'visible';
   container.innerHTML = html;
 
-  // Fix photo aspect-ratio
+  // Fix photo aspect-ratio (html2canvas can't read CSS aspect-ratio)
   var photoEls = container.querySelectorAll('.pv-photo');
   photoEls.forEach(function(photo) {
     var w = photo.offsetWidth;
     if (w > 0) {
-      var ratio = customize.photoSize === 'small' ? 3.5/3 : customize.photoSize === 'large' ? 4/3 : 3.7/3;
+      var ratio;
+      if (customize.photoShape === 'circle') ratio = 1;
+      else if (customize.photoShape === 'oval') ratio = 3.5/3;
+      else ratio = 3.3/3;
       photo.style.height = Math.round(w * ratio) + 'px';
       photo.style.aspectRatio = 'auto';
     }
