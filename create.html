@@ -1647,8 +1647,8 @@ function fixPhotoHeights(container) {
 }
 
 // Build content and paginate it so no section is split across a page boundary.
-// Sections that would straddle a boundary get pushed (via margin-top) to the next page.
-// Returns { html, pageCount } — html has spacers baked in and can be sliced at clean 842px intervals.
+// Uses physical spacer <div>s (not margins) and a verify loop that re-measures
+// after every push, so it self-corrects until no section crosses a boundary.
 var paginatedCache = { html: '', pageCount: 1 };
 
 function buildPaginatedContent() {
@@ -1665,29 +1665,69 @@ function buildPaginatedContent() {
   void pvContent.offsetHeight;
 
   var pageHeight = 842;
-  var contentTop = pvContent.getBoundingClientRect().top;
+
+  // Position of an element relative to pv-content's top border edge.
+  // pv-content is position:relative, so it is the offsetParent of every
+  // static descendant — offsetTop chain is exact, no viewport/scroll involved.
+  function relTop(el) {
+    var t = 0;
+    var node = el;
+    while (node && node !== pvContent) {
+      t += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return t;
+  }
 
   if (maxPages > 1) {
-    // Push any section that crosses a page boundary onto the next page
-    var sections = Array.prototype.slice.call(mc.querySelectorAll('.pv-section'));
-    var pageBottom = pageHeight;
-    sections.forEach(function(sec) {
-      var rect = sec.getBoundingClientRect();
-      var top = rect.top - contentTop;
-      var bottom = rect.bottom - contentTop;
-      var h = rect.height;
+    // Verify-and-push loop. Rule per section, using absolute page geometry:
+    //  - a section may not cross a page boundary
+    //  - a section may not start within the top 24px of a page (glyph ink from
+    //    cursive fonts overflows the box; a 24px landing keeps it clear of the slice)
+    // After each fix we re-measure everything, so pushes cascade correctly.
+    var LAND = 24; // safety band below each page top
+    var safety = 0;
+    var changed = true;
+    while (changed && safety < 15) {
+      changed = false;
+      safety++;
+      void pvContent.offsetHeight; // reflow before measuring
 
-      // Advance to the page this section starts on
-      while (top >= pageBottom) pageBottom += pageHeight;
+      var secs = mc.querySelectorAll('.pv-section');
+      for (var i = 0; i < secs.length; i++) {
+        var sec = secs[i];
+        var top = relTop(sec);
+        var h = sec.offsetHeight;
+        var bottom = top + h;
 
-      // If it crosses the boundary and fits within a single page, push it down
-      if (bottom > pageBottom && h <= pageHeight) {
-        var push = pageBottom - top + 6; // small gap into next page
-        var curMt = parseFloat(getComputedStyle(sec).marginTop) || 0;
-        sec.style.marginTop = (curMt + push) + 'px';
-        pageBottom += pageHeight;
+        var page = Math.floor(top / pageHeight);
+        var pageTop = page * pageHeight;
+        var pageBottom = (page + 1) * pageHeight;
+
+        var push = 0;
+        if (page > 0 && (top - pageTop) < LAND) {
+          // Starts too close to the top edge of a page — nudge below the ink band
+          push = (pageTop + LAND) - top;
+        } else if (bottom > pageBottom && h <= pageHeight - LAND * 2) {
+          // Crosses the boundary and can fit on one page — move to next page
+          push = (pageBottom + LAND) - top;
+        }
+
+        if (push > 0) {
+          var prev = sec.previousElementSibling;
+          if (prev && prev.className === 'pv-page-spacer') {
+            prev.style.height = ((parseFloat(prev.style.height) || 0) + push) + 'px';
+          } else {
+            var spacer = document.createElement('div');
+            spacer.className = 'pv-page-spacer';
+            spacer.style.cssText = 'height:' + push + 'px;flex-shrink:0;';
+            sec.parentNode.insertBefore(spacer, sec);
+          }
+          changed = true;
+          break; // layout shifted — restart the verification pass
+        }
       }
-    });
+    }
     void pvContent.offsetHeight;
   }
 
@@ -1710,6 +1750,17 @@ function buildPaginatedContent() {
 }
 
 function renderAllPages(callback) {
+  document.getElementById('generating-overlay').classList.add('open');
+
+  var proceed = function() { renderAllPagesInner(callback); };
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(proceed).catch(proceed);
+  } else {
+    proceed();
+  }
+}
+
+function renderAllPagesInner(callback) {
   document.getElementById('generating-overlay').classList.add('open');
 
   var container = document.getElementById('pdf-render-container');
@@ -1984,6 +2035,14 @@ window.addEventListener('resize', function() {
 loadAutoSave();
 checkExistingPayment();
 init();
+
+// Fonts change text metrics: re-measure pagination once webfonts finish loading,
+// otherwise sections measured with fallback fonts can land across page boundaries.
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(function() {
+    updatePreview();
+  });
+}
 </script>
 
 </body>
