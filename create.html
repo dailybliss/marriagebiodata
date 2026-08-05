@@ -1259,20 +1259,17 @@ function buildPreviewHTML(includeWatermark, forExport) {
     html += renderContactFields(ac, bgMid);
     html += '</div>';
   } else {
-    // Float the photo so text flows alongside AND wraps underneath it — no gap.
-    var floatSide = photoOnRight ? 'right' : 'left';
-    var floatMargin = photoOnRight ? 'margin:0 0 10px 16px' : 'margin:0 16px 10px 0';
-    html += '<div class="pv-body-float" style="display:block">';
-    html += renderPhoto(ac, bgMid, photoW, photoShape, 'float:' + floatSide + ';' + floatMargin);
-    // All sections flow in one continuous column, wrapping under the photo
+    // Two columns: photo in one, ALL content in the other. Nothing sits below the photo.
+    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
+    html += renderPhoto(ac, bgMid, photoW, photoShape, '');
+    html += '<div class="pv-details">';
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
     html += renderFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
-    // Clear the float so nothing overlaps
-    html += '<div style="clear:both"></div>';
+    html += '</div>';
     html += '</div>';
   }
 
