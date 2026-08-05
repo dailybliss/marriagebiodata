@@ -1393,7 +1393,7 @@ function renderPreferencesFields(ac, bgMid) {
   if (!formData.partnerPrefs) return '';
   var sz = window._sz;
   var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Partner preferences', ac, bgMid);
-  html += '<div style="font-size:' + sz.pref + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.partnerPrefs + '</div>';
+  html += '<div class="pv-pref-text" style="font-size:' + sz.pref + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.partnerPrefs + '</div>';
   html += '</div>';
   return html;
 }
@@ -1651,6 +1651,19 @@ function fixPhotoHeights(container) {
 // after every push, so it self-corrects until no section crosses a boundary.
 var paginatedCache = { html: '', pageCount: 1 };
 
+function insertSpacerBefore(el, height) {
+  if (height <= 0) return;
+  var prev = el.previousElementSibling;
+  if (prev && prev.className === 'pv-page-spacer') {
+    prev.style.height = ((parseFloat(prev.style.height) || 0) + height) + 'px';
+  } else {
+    var spacer = document.createElement('div');
+    spacer.className = 'pv-page-spacer';
+    spacer.style.cssText = 'height:' + height + 'px;flex-shrink:0;';
+    el.parentNode.insertBefore(spacer, el);
+  }
+}
+
 function buildPaginatedContent() {
   var mc = document.getElementById('pdf-render-container');
   mc.style.display = 'block';
@@ -1680,17 +1693,19 @@ function buildPaginatedContent() {
   }
 
   if (maxPages > 1) {
-    // Safe-area pagination: every page has a protected margin at its top and
-    // bottom. No section may enter either zone — anything that would gets
-    // pushed to the next page's content start (below the top margin).
-    var TOP_MARGIN = 30;     // blank zone at the start of pages 2+
-    var BOTTOM_MARGIN = 30;  // blank zone at the end of every page
+    // Pagination with small safe margins. Sections avoid crossing page
+    // boundaries; but a section TALLER than a page (or than the space left)
+    // is allowed to split between its field rows so we don't waste space.
+    var TOP_MARGIN = 12;     // small blank zone at the start of pages 2+
+    var BOTTOM_MARGIN = 12;  // small blank zone at the end of every page
+    var usable = pageHeight - TOP_MARGIN - BOTTOM_MARGIN;
+
     var safety = 0;
     var changed = true;
-    while (changed && safety < 15) {
+    while (changed && safety < 20) {
       changed = false;
       safety++;
-      void pvContent.offsetHeight; // reflow before measuring
+      void pvContent.offsetHeight;
 
       var secs = mc.querySelectorAll('.pv-section');
       for (var i = 0; i < secs.length; i++) {
@@ -1703,29 +1718,39 @@ function buildPaginatedContent() {
         var pageTop = page * pageHeight;
         var contentStart = pageTop + (page > 0 ? TOP_MARGIN : 0);
         var contentEnd = (page + 1) * pageHeight - BOTTOM_MARGIN;
-        var usable = pageHeight - TOP_MARGIN - BOTTOM_MARGIN;
 
-        var push = 0;
+        // Case A: section starts inside the top margin band → nudge below it
         if (top < contentStart) {
-          // Starts inside the top margin zone of a page — nudge below it
-          push = contentStart - top;
-        } else if (bottom > contentEnd && h <= usable) {
-          // Would enter the bottom margin zone and fits on one page — move to next page
-          push = ((page + 1) * pageHeight + TOP_MARGIN) - top;
+          insertSpacerBefore(sec, contentStart - top);
+          changed = true;
+          break;
         }
 
-        if (push > 0) {
-          var prev = sec.previousElementSibling;
-          if (prev && prev.className === 'pv-page-spacer') {
-            prev.style.height = ((parseFloat(prev.style.height) || 0) + push) + 'px';
-          } else {
-            var spacer = document.createElement('div');
-            spacer.className = 'pv-page-spacer';
-            spacer.style.cssText = 'height:' + push + 'px;flex-shrink:0;';
-            sec.parentNode.insertBefore(spacer, sec);
-          }
+        // Case B: section fits entirely on this page but overruns the bottom
+        // margin → move the whole section to the next page's content start
+        if (bottom > contentEnd && h <= usable) {
+          insertSpacerBefore(sec, ((page + 1) * pageHeight + TOP_MARGIN) - top);
           changed = true;
-          break; // layout shifted — restart the verification pass
+          break;
+        }
+
+        // Case C: section is TALLER than a full usable page and overruns the
+        // bottom margin → split it: find the last field row that still fits on
+        // this page and push everything AFTER it to the next page.
+        if (bottom > contentEnd && h > usable) {
+          var rows = sec.querySelectorAll('.pv-field, .pv-sec-title, .pv-pref-text');
+          var splitRow = null;
+          for (var r = 0; r < rows.length; r++) {
+            var rTop = relTop(rows[r]);
+            var rBottom = rTop + rows[r].offsetHeight;
+            if (rBottom > contentEnd) { splitRow = rows[r]; break; }
+          }
+          if (splitRow && splitRow !== rows[0]) {
+            var sTop = relTop(splitRow);
+            insertSpacerBefore(splitRow, ((page + 1) * pageHeight + TOP_MARGIN) - sTop);
+            changed = true;
+            break;
+          }
         }
       }
     }
