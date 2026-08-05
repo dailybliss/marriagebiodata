@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create Your Biodata — Marriage Biodata Creator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Lato:wght@400;700&family=Cormorant+Garamond:wght@400;500;600&family=Poppins:wght@400;500;600&family=Libre+Baskerville:wght@400;700&family=Nunito:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Lato:wght@400;700&family=Cormorant+Garamond:wght@400;500;600&family=Poppins:wght@400;500;600&family=Libre+Baskerville:wght@400;700&family=Nunito:wght@400;600;700&family=Merriweather:wght@400;700&family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -826,12 +826,13 @@ var colorOptions = [
 ];
 
 var fontOptions = [
-  { name: 'Playfair Display', label: 'Playfair' },
-  { name: 'Cormorant Garamond', label: 'Cormorant' },
-  { name: 'Libre Baskerville', label: 'Baskerville' },
-  { name: 'Merriweather', label: 'Merriweather' },
-  { name: 'Poppins', label: 'Poppins' },
-  { name: 'Nunito', label: 'Nunito' }
+  { name: 'Playfair Display', label: 'Playfair', cursive: false },
+  { name: 'Cormorant Garamond', label: 'Cormorant', cursive: false },
+  { name: 'Libre Baskerville', label: 'Baskerville', cursive: false },
+  { name: 'Merriweather', label: 'Merriweather', cursive: false },
+  { name: 'Poppins', label: 'Poppins', cursive: false },
+  { name: 'Nunito', label: 'Nunito', cursive: false },
+  { name: 'Dancing Script', label: 'Dancing Script', cursive: true }
 ];
 
 var iconOptions = [
@@ -875,8 +876,10 @@ function renderFontSelect() {
   fontOptions.forEach(function(f) {
     var btn = document.createElement('button');
     btn.className = 'font-btn' + (f.name === customize.displayFont ? ' active' : '');
-    btn.textContent = f.label;
     btn.style.fontFamily = f.name;
+    btn.style.fontSize = f.cursive ? '17px' : '13px';
+    btn.textContent = f.label;
+    btn.title = f.name;
     btn.onclick = function() {
       customize.displayFont = f.name;
       renderFontSelect();
@@ -1160,9 +1163,12 @@ function buildPreviewHTML(includeWatermark, forExport) {
 
   // Font sizes: preview uses tiny clamp values for the small panel,
   // export uses proper A4 document sizes (595px = 210mm A4 width)
+  var cursiveFonts = ['Dancing Script'];
+  var isCursive = cursiveFonts.indexOf(customize.displayFont) >= 0;
+
   var sz = forExport ? {
     icon: '22px',
-    name: '34px',
+    name: isCursive ? '48px' : '34px',   // cursive needs bigger size for impact
     tagline: '12px',
     secTitle: '16px',
     field: '14.5px',
@@ -1170,7 +1176,7 @@ function buildPreviewHTML(includeWatermark, forExport) {
     pref: '14.5px'
   } : {
     icon: 'clamp(8px,2.5%,14px)',
-    name: 'clamp(10px,4.5%,22px)',
+    name: isCursive ? 'clamp(16px,6%,32px)' : 'clamp(10px,4.5%,22px)',
     tagline: 'clamp(5px,1.5%,8px)',
     secTitle: 'clamp(5px,2%,10px)',
     field: 'clamp(5px,1.8%,9px)',
