@@ -760,7 +760,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 </div>
 
 <!-- HIDDEN RENDER CONTAINER FOR PDF -->
-<div id="pdf-render-container" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;z-index:240;pointer-events:none;display:none;"></div>
+<div id="pdf-render-container" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;z-index:240;pointer-events:none;display:none;font-family:'Lato',sans-serif;"></div>
 
 <script>
 // ===== STATE =====
@@ -1196,7 +1196,7 @@ function buildPreviewHTML(includeWatermark, forExport) {
   }
 
   var html = '<div class="pv-bg" style="' + bgStyle + 'background:' + bgLight + ';border:1px solid ' + bgMid + '"></div>';
-  html += '<div class="pv-content" style="' + contentHeightStyle + 'color:' + darken(ac, 0.15) + ';padding:' + contentPadding + '">';
+  html += '<div class="pv-content" style="' + contentHeightStyle + 'color:' + darken(ac, 0.15) + ';padding:' + contentPadding + ';font-family:\'Lato\',sans-serif">';
 
   // Header
   html += '<div class="pv-header">';
@@ -1680,12 +1680,11 @@ function buildPaginatedContent() {
   }
 
   if (maxPages > 1) {
-    // Verify-and-push loop. Rule per section, using absolute page geometry:
-    //  - a section may not cross a page boundary
-    //  - a section may not start within the top 24px of a page (glyph ink from
-    //    cursive fonts overflows the box; a 24px landing keeps it clear of the slice)
-    // After each fix we re-measure everything, so pushes cascade correctly.
-    var LAND = 24; // safety band below each page top
+    // Safe-area pagination: every page has a protected margin at its top and
+    // bottom. No section may enter either zone — anything that would gets
+    // pushed to the next page's content start (below the top margin).
+    var TOP_MARGIN = 30;     // blank zone at the start of pages 2+
+    var BOTTOM_MARGIN = 30;  // blank zone at the end of every page
     var safety = 0;
     var changed = true;
     while (changed && safety < 15) {
@@ -1702,15 +1701,17 @@ function buildPaginatedContent() {
 
         var page = Math.floor(top / pageHeight);
         var pageTop = page * pageHeight;
-        var pageBottom = (page + 1) * pageHeight;
+        var contentStart = pageTop + (page > 0 ? TOP_MARGIN : 0);
+        var contentEnd = (page + 1) * pageHeight - BOTTOM_MARGIN;
+        var usable = pageHeight - TOP_MARGIN - BOTTOM_MARGIN;
 
         var push = 0;
-        if (page > 0 && (top - pageTop) < LAND) {
-          // Starts too close to the top edge of a page — nudge below the ink band
-          push = (pageTop + LAND) - top;
-        } else if (bottom > pageBottom && h <= pageHeight - LAND * 2) {
-          // Crosses the boundary and can fit on one page — move to next page
-          push = (pageBottom + LAND) - top;
+        if (top < contentStart) {
+          // Starts inside the top margin zone of a page — nudge below it
+          push = contentStart - top;
+        } else if (bottom > contentEnd && h <= usable) {
+          // Would enter the bottom margin zone and fits on one page — move to next page
+          push = ((page + 1) * pageHeight + TOP_MARGIN) - top;
         }
 
         if (push > 0) {
