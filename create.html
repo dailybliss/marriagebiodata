@@ -1138,12 +1138,18 @@ function buildPagedPreviewHTML(pageNum, includeWatermark) {
   var pageHeight = 842;
   var totalHeight = currentPageCount * pageHeight;
 
-  // Use clean break points so preview matches PDF — no text cut mid-line
+  // Clean break window for this page
   var breakTop = (currentBreakPoints && currentBreakPoints[pageNum - 1]) || (pageNum - 1) * pageHeight;
+  var breakBottom = (currentBreakPoints && currentBreakPoints[pageNum]) || pageNum * pageHeight;
+  var sliceHeight = breakBottom - breakTop;
 
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
+  // Clip layer: only reveal this page's slice (breakTop → breakBottom), rest is blank
+  html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + sliceHeight + 'px;overflow:hidden;">';
+  // Content offset upward so this page's slice starts at the top
   html += '<div style="position:absolute;top:' + (-breakTop) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
   html += contentHTML;
+  html += '</div>';
   html += '</div>';
 
   if (includeWatermark) {
@@ -1658,35 +1664,34 @@ var generatedPageCanvases = [];  // array of per-page canvases
 function getCleanBreakPoints(container, pageHeight, pageCount) {
   var containerTop = container.getBoundingClientRect().top + window.scrollY;
 
-  // Collect the top positions of all section divs relative to the container
+  // Collect top positions of all section divs relative to the container
   var sectionTops = [];
   var sections = container.querySelectorAll('.pv-section');
   sections.forEach(function(sec) {
     var rect = sec.getBoundingClientRect();
     var top = rect.top + window.scrollY - containerTop;
-    if (top > 0) sectionTops.push(top);
+    if (top > 5) sectionTops.push(top);
   });
   sectionTops.sort(function(a, b) { return a - b; });
 
-  // For each page boundary (at pageHeight, 2*pageHeight, etc.),
-  // find the nearest section top that falls BEFORE the boundary
-  // so we break between sections rather than through them.
   var breakPoints = [0];
   for (var p = 1; p < pageCount; p++) {
-    var boundary = p * pageHeight;
-    var bestBreak = boundary; // fallback: cut exactly at boundary
+    var idealBoundary = breakPoints[p - 1] + pageHeight; // max this page can hold
+    var prevBreak = breakPoints[p - 1];
+    var bestBreak = idealBoundary; // fallback: hard cut at max height
 
-    // Find the last section top that starts at least 20px before the boundary
-    // (gives breathing room so we don't cut on the section title line itself)
+    // Find the last section that starts AFTER the previous break and
+    // BEFORE (or at) the ideal boundary — that's the cleanest split.
     for (var i = sectionTops.length - 1; i >= 0; i--) {
-      if (sectionTops[i] < boundary - 20) {
+      if (sectionTops[i] > prevBreak + 20 && sectionTops[i] <= idealBoundary) {
         bestBreak = sectionTops[i];
         break;
       }
     }
     breakPoints.push(bestBreak);
   }
-  breakPoints.push(pageCount * pageHeight); // end of last page
+  // Last page ends at the true content end (or the page grid end, whichever is larger)
+  breakPoints.push(breakPoints[pageCount - 1] + pageHeight);
   return breakPoints;
 }
 
@@ -1728,7 +1733,16 @@ function renderAllPages(callback) {
   var pageCount;
   if (maxPages === 1) {
     pageCount = 1;
-    // Auto-fit: scale content to fit one page if it overflows
+  } else {
+    pageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
+    if (pageCount < 1) pageCount = 1;
+  }
+
+  // Detect clean break points NOW, before any scale transform distorts measurements
+  var cleanBreakPoints = getCleanBreakPoints(container, pageHeight, pageCount);
+
+  // Now apply sizing / auto-fit transforms
+  if (maxPages === 1) {
     if (naturalHeight > pageHeight) {
       var fitScale = (pageHeight / naturalHeight) * 0.99;
       var scaledWidth = pageWidth * fitScale;
@@ -1739,27 +1753,22 @@ function renderAllPages(callback) {
     container.style.height = pageHeight + 'px';
     container.style.overflow = 'hidden';
   } else {
-    pageCount = Math.min(Math.ceil(naturalHeight / pageHeight), maxPages);
-    if (pageCount < 1) pageCount = 1;
-    // Set container to exact page count height
     var totalHeight = pageCount * pageHeight;
-    // If content exceeds max pages, scale it down to fit within max pages
     if (naturalHeight > totalHeight) {
       var fit = (totalHeight / naturalHeight) * 0.99;
       pvContent.style.transformOrigin = 'top left';
       pvContent.style.transform = 'scale(' + fit + ')';
       pvContent.style.width = (100 / fit) + '%';
+      // Rescale break points to match the scaled content
+      for (var bp = 0; bp < cleanBreakPoints.length; bp++) {
+        cleanBreakPoints[bp] = cleanBreakPoints[bp] * fit;
+      }
     }
     container.style.height = totalHeight + 'px';
     container.style.overflow = 'hidden';
-    // Make the bg fill all pages
     var bg = container.querySelector('.pv-bg');
     if (bg) bg.style.height = totalHeight + 'px';
   }
-
-  // Detect clean page break points by measuring section top positions in the DOM
-  // before we render to canvas. We slice between sections, not through them.
-  var cleanBreakPoints = getCleanBreakPoints(container, pageHeight, pageCount);
 
   var delay = isMobile() ? 1200 : 500;
 
