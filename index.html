@@ -700,10 +700,6 @@ body {
       <span class="chip-check"><svg viewBox="0 0 10 10" fill="none" stroke="var(--rose)" stroke-width="2"><polyline points="2,5 4.5,7.5 8,3"/></svg></span>
       Floral
     </div>
-    <div class="filter-chip" data-cat="elegant" onclick="toggleFilter(this)">
-      <span class="chip-check"><svg viewBox="0 0 10 10" fill="none" stroke="var(--rose)" stroke-width="2"><polyline points="2,5 4.5,7.5 8,3"/></svg></span>
-      Elegant
-    </div>
   </div>
 
   <!-- SINGLE PREVIEW VIEW -->
@@ -828,23 +824,13 @@ body {
 
 <script>
 var templates = [
-  { id: 'royal-maroon', name: 'Royal Maroon', cat: 'traditional', bg: '#FFF9F0', border: '#D4BF8A', accent: '#8B1A3A', gold: '#C9A84C', fieldBg: '#E8DED0', secBg: '#D4BF8A88', photoBg: '#F0E6D4', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#6B2D2D' },
-  { id: 'ocean-blue', name: 'Ocean Blue', cat: 'modern', bg: '#F0F6FB', border: '#A8C8E8', accent: '#1A5B8B', gold: '#4C8EC9', fieldBg: '#D0DCE8', secBg: '#A8C8E888', photoBg: '#D8E8F4', icon: '\u2766', nameText: 'Anika Patel', nameColor: '#1A5B8B' },
-  { id: 'rose-garden', name: 'Rose Garden', cat: 'floral', bg: '#FFF5F5', border: '#E8B0B0', accent: '#A03050', gold: '#D07080', fieldBg: '#F0C8C8', secBg: '#E8B0B088', photoBg: '#F8D8D8', icon: '\u2740', nameText: 'Meera Joshi', nameColor: '#8B2040' },
-  { id: 'sage-minimal', name: 'Sage Minimal', cat: 'simple', bg: '#F5FAF5', border: '#B8D8B8', accent: '#2A6B3A', gold: '#5CA86C', fieldBg: '#C8E0C8', secBg: '#B8D8B888', photoBg: '#D8ECD8', icon: '\u2022', nameText: 'Riya Deshmukh', nameColor: '#2A6B3A' },
-  { id: 'lavender-dream', name: 'Lavender Dream', cat: 'elegant', bg: '#F8F5FF', border: '#C8B8E8', accent: '#5B3A8B', gold: '#8868C9', fieldBg: '#D8D0F0', secBg: '#C8B8E888', photoBg: '#E4DCF4', icon: '\u2726', nameText: 'Sneha Kulkarni', nameColor: '#5B3A8B' },
-  { id: 'gold-classic', name: 'Gold Classic', cat: 'traditional', bg: '#FFFAF0', border: '#D4B878', accent: '#6B4A10', gold: '#B8942C', fieldBg: '#E8DCC0', secBg: '#D4B87888', photoBg: '#F0E4C8', icon: '\u0950', nameText: 'Pooja Reddy', nameColor: '#6B4A10' },
-  { id: 'teal-fresh', name: 'Teal Fresh', cat: 'modern', bg: '#F0FAFA', border: '#90D0D0', accent: '#1A6B6B', gold: '#3AA8A0', fieldBg: '#B8E0E0', secBg: '#90D0D088', photoBg: '#C8EAEA', icon: '\u25C8', nameText: 'Kavya Nair', nameColor: '#1A6B6B' },
-  { id: 'blush-peach', name: 'Blush Peach', cat: 'floral', bg: '#FFF8F4', border: '#E8C8A8', accent: '#8B4A2A', gold: '#D09060', fieldBg: '#F0D8C0', secBg: '#E8C8A888', photoBg: '#F4E0D0', icon: '\u2740', nameText: 'Aditi Sharma', nameColor: '#8B4A2A' },
-  { id: 'slate-modern', name: 'Slate Modern', cat: 'simple', bg: '#F4F4F2', border: '#C8C8C0', accent: '#3A3A38', gold: '#888880', fieldBg: '#D8D8D2', secBg: '#C8C8C088', photoBg: '#E0E0DA', icon: '\u2022', nameText: 'Neha Gupta', nameColor: '#3A3A38' },
   { id: 'kalash-ornate', name: 'Kalash Ornate', cat: 'traditional', bg: '#F0EAD8', border: '#C8A86C', accent: '#7B5E2A', gold: '#B8943A', fieldBg: '#E0D4B8', secBg: '#C8A86C88', photoBg: '#E8DEC8', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#7B5E2A', bgImage: 'templates/kalash-ornate.jpg' },
   { id: 'flower', name: 'Flower', cat: 'floral', bg: '#FFF0F4', border: '#E8C0D0', accent: '#8B2050', gold: '#C06080', fieldBg: '#F0D0DC', secBg: '#E8B0C888', photoBg: '#F8E0E8', icon: '\u2740', nameText: 'Priya Sharma', nameColor: '#8B2050', bgImage: 'templates/flower.jpg' },
+  { id: 'minimalist', name: 'Minimalist', cat: 'simple', bg: '#F8F5F0', border: '#D8D0C0', accent: '#6B5A40', gold: '#B09060', fieldBg: '#EEE8DC', secBg: '#D8D0C088', photoBg: '#F4EEE4', icon: '\u2022', nameText: 'Priya Sharma', nameColor: '#6B5A40', bgImage: 'templates/minimalist.jpg' },
+  { id: 'sky', name: 'Sky', cat: 'modern', bg: '#EEF8FC', border: '#A0CCE0', accent: '#1A5A7B', gold: '#4CA0C9', fieldBg: '#D4E8F4', secBg: '#A0CCE088', photoBg: '#DCF0F8', icon: '\u25C8', nameText: 'Priya Sharma', nameColor: '#1A5A7B', bgImage: 'templates/sky.jpg' },
   { id: 'rainbow', name: 'Rainbow', cat: 'modern', bg: '#F0EEF8', border: '#C8C0E0', accent: '#5B4A7B', gold: '#8868C9', fieldBg: '#E4E0F4', secBg: '#C8B8E888', photoBg: '#EAE0F8', icon: '\u2726', nameText: 'Priya Sharma', nameColor: '#5B4A7B', bgImage: 'templates/rainbow.jpg' },
   { id: 'artwork', name: 'Artwork', cat: 'traditional', bg: '#F5EFE0', border: '#C8A878', accent: '#7B3A28', gold: '#B88050', fieldBg: '#EAE0C8', secBg: '#C8A87888', photoBg: '#F0E4D0', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#7B3A28', bgImage: 'templates/artwork.jpg' },
   { id: 'green', name: 'Green', cat: 'simple', bg: '#EEF5EE', border: '#A8C8A8', accent: '#2A5A3A', gold: '#5CA86C', fieldBg: '#D8EAD8', secBg: '#A8C8A888', photoBg: '#E0EEE0', icon: '\u2022', nameText: 'Priya Sharma', nameColor: '#2A5A3A', bgImage: 'templates/green.jpg' },
-  { id: 'minimalist', name: 'Minimalist', cat: 'simple', bg: '#F8F5F0', border: '#D8D0C0', accent: '#6B5A40', gold: '#B09060', fieldBg: '#EEE8DC', secBg: '#D8D0C088', photoBg: '#F4EEE4', icon: '\u2022', nameText: 'Priya Sharma', nameColor: '#6B5A40', bgImage: 'templates/minimalist.jpg' },
-  { id: 'sky', name: 'Sky', cat: 'modern', bg: '#EEF8FC', border: '#A0CCE0', accent: '#1A5A7B', gold: '#4CA0C9', fieldBg: '#D4E8F4', secBg: '#A0CCE088', photoBg: '#DCF0F8', icon: '\u25C8', nameText: 'Priya Sharma', nameColor: '#1A5A7B', bgImage: 'templates/sky.jpg' },
-  { id: 'ruby-ornate', name: 'Ruby Ornate', cat: 'elegant', bg: '#FFF5F8', border: '#D8A0B0', accent: '#7B1A40', gold: '#C06080', fieldBg: '#F0C0D0', secBg: '#D8A0B088', photoBg: '#F4D0DC', icon: '\u2766', nameText: 'Shruti Iyer', nameColor: '#7B1A40' },
 ];
 
 var state = {
