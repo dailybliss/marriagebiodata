@@ -1211,7 +1211,8 @@ function buildPreviewHTML(includeWatermark, forExport) {
   var bgImgSrc = currentTemplate.bgImage || null;
   var bgInlineStyle;
   if (bgImgSrc) {
-    bgInlineStyle = bgStyle + 'background-image:url(' + bgImgSrc + ');background-size:cover;background-position:center top;';
+    // Use the image as background — NO colour fill, just the image tiling per page
+    bgInlineStyle = bgStyle + 'background-image:url(' + bgImgSrc + ');background-size:100% 842px;background-repeat:repeat-y;background-color:transparent;';
   } else {
     bgInlineStyle = bgStyle + 'background:' + bgLight + ';border:1px solid ' + bgMid + ';';
   }
@@ -1848,7 +1849,13 @@ function renderAllPagesInner(callback) {
     container.style.height = totalHeight + 'px';
     container.style.overflow = 'hidden';
     var bg = container.querySelector('.pv-bg');
-    if (bg) bg.style.height = totalHeight + 'px';
+    if (bg) {
+      bg.style.height = totalHeight + 'px';
+      // For image backgrounds, ensure colour doesn't bleed through
+      if (currentTemplate.bgImage) {
+        bg.style.backgroundColor = 'transparent';
+      }
+    }
   }
 
   var delay = isMobile() ? 1200 : 500;
