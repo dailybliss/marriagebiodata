@@ -1193,11 +1193,29 @@ function renderStackedPages(containerId) {
   if (!container) return;
   container.innerHTML = '';
 
+  // Single page mode: render all content in one frame, scaled to fit — no splits at all
+  if (maxPages === 1) {
+    var wrap = document.createElement('div');
+    wrap.className = 'preview-page-wrap';
+
+    var frame = document.createElement('div');
+    frame.className = 'preview-frame';
+    var inner = document.createElement('div');
+    inner.className = 'preview-inner';
+    inner.innerHTML = buildPagedPreviewHTML(1, true);
+    frame.appendChild(inner);
+    wrap.appendChild(frame);
+    container.appendChild(wrap);
+
+    requestAnimationFrame(function() { scalePreviewToFit(inner); });
+    return;
+  }
+
+  // Multi-page mode: stack pages with dividers between them
   for (var p = 1; p <= currentPageCount; p++) {
     var wrap = document.createElement('div');
     wrap.className = 'preview-page-wrap';
 
-    // Page divider label between pages (not above page 1)
     if (currentPageCount > 1 && p > 1) {
       var label = document.createElement('div');
       label.className = 'preview-page-label';
@@ -1214,7 +1232,6 @@ function renderStackedPages(containerId) {
     wrap.appendChild(frame);
     container.appendChild(wrap);
 
-    // Scale this page's content to fit the frame (defer so layout is ready)
     (function(innerEl) {
       requestAnimationFrame(function() { scalePreviewToFit(innerEl); });
     })(inner);
@@ -1238,27 +1255,29 @@ function scalePreviewToFit(previewEl) {
 function buildPagedPreviewHTML(pageNum, includeWatermark) {
   var contentHTML = paginatedCache.html || buildPreviewHTML(false, true);
   var pageHeight = 842;
+  var naturalHeight = paginatedCache.naturalHeight || pageHeight;
   var totalHeight = currentPageCount * pageHeight;
   var offset = (pageNum - 1) * pageHeight;
 
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
-  html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + pageHeight + 'px;overflow:hidden;">';
 
-  // When single-page mode is on and content is taller than one page,
-  // apply the same fit scale as the download so preview matches output exactly
-  var naturalHeight = paginatedCache.naturalHeight || totalHeight;
   if (maxPages === 1 && naturalHeight > pageHeight) {
+    // Single page mode: scale all content down to fit one page — no clipping, no joins
     var fitScale = (pageHeight / naturalHeight) * 0.99;
     var scaledWidth = 595 * fitScale;
     var xOffset = (595 - scaledWidth) / 2;
-    html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + naturalHeight + 'px;transform:translateX(' + xOffset + 'px) scale(' + fitScale + ');transform-origin:top left;">';
+    html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + naturalHeight + 'px;';
+    html += 'transform:translateX(' + xOffset + 'px) scale(' + fitScale + ');transform-origin:top left;">';
+    html += contentHTML;
+    html += '</div>';
   } else {
+    // Multi-page mode: clip to this page's slice
+    html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + pageHeight + 'px;overflow:hidden;">';
     html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+    html += contentHTML;
+    html += '</div>';
+    html += '</div>';
   }
-
-  html += contentHTML;
-  html += '</div>';
-  html += '</div>';
 
   if (includeWatermark) {
     var ac = customize.accentColor;
