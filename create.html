@@ -155,6 +155,11 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 .preview-page-wrap:only-child .preview-frame { border-radius: var(--radius-sm); }
 .preview-pages-wrap { border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-soft); }
 .preview-inner { position: absolute; inset: 0; overflow: hidden; font-family: 'Lato', sans-serif; }
+.preview-watermark-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background-image: repeating-linear-gradient(-30deg, transparent, transparent 60px, rgba(139,26,58,0.06) 60px, rgba(139,26,58,0.06) 120px); }
+.preview-watermark-overlay::after { content: 'PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW  PREVIEW';
+  position: absolute; inset: -50%; transform: rotate(-30deg); font-size: 13px; font-weight: 700; letter-spacing: 3px;
+  color: rgba(139,26,58,0.10); line-height: 3.2; word-spacing: 8px; text-align: center; }
 
 /* PREVIEW CONTENT STYLES */
 .pv-bg { position: absolute; inset: 0; }
@@ -905,7 +910,8 @@ function init() {
   renderTemplateSwitcher();
   syncSinglePageToggle();
   updateRectangleAvailability();
-  updatePreview();
+  readForm();
+  renderRealPreview(); // render the real file immediately on load
 }
 
 function toggleSinglePage(btn) {
@@ -1159,20 +1165,84 @@ function readForm() {
 }
 
 // ===== PREVIEW RENDERING =====
+var _previewDebounce = null;
+var _previewRendering = false;
+var _previewQueued = false;
+
 function updatePreview() {
   readForm();
-  measurePages();
-  renderPreviewPages();
   autoSave();
+  // Debounce the real-file render so we don't run html2canvas on every keystroke
+  scheduleRealPreview();
 }
 
-// Measure how many pages the content needs
-var currentBreakPoints = [0, 842]; // default single page
+function scheduleRealPreview() {
+  if (_previewDebounce) clearTimeout(_previewDebounce);
+  showPreviewLoading();
+  _previewDebounce = setTimeout(function() {
+    renderRealPreview();
+  }, 900);
+}
 
-function measurePages() {
-  var result = buildPaginatedContent();
-  currentPageCount = result.pageCount;
-  updatePageIndicator();
+function showPreviewLoading() {
+  var indicator = document.getElementById('page-indicator');
+  if (indicator) indicator.textContent = 'Updating…';
+}
+
+// Render the ACTUAL file (same canvases used for download) into the preview panel
+function renderRealPreview() {
+  if (_previewRendering) { _previewQueued = true; return; }
+  _previewRendering = true;
+
+  renderAllPages(function(pageCanvases) {
+    displayPreviewCanvases(pageCanvases);
+    _previewRendering = false;
+    updatePageIndicator();
+    if (_previewQueued) {
+      _previewQueued = false;
+      renderRealPreview();
+    }
+  }, true); // quiet = true (no big overlay)
+}
+
+function displayPreviewCanvases(pageCanvases) {
+  renderCanvasesInto('preview-pages', pageCanvases);
+  renderCanvasesInto('mobile-preview-pages', pageCanvases);
+}
+
+function renderCanvasesInto(containerId, pageCanvases) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  pageCanvases.forEach(function(canvas, idx) {
+    var wrap = document.createElement('div');
+    wrap.className = 'preview-page-wrap';
+
+    if (pageCanvases.length > 1 && idx > 0) {
+      var label = document.createElement('div');
+      label.className = 'preview-page-label';
+      label.textContent = '— Page ' + (idx + 1) + ' —';
+      wrap.appendChild(label);
+    }
+
+    var frame = document.createElement('div');
+    frame.className = 'preview-frame';
+
+    // Draw the real canvas as an image that fills the frame
+    var img = document.createElement('img');
+    img.src = canvas.toDataURL('image/png');
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block';
+    frame.appendChild(img);
+
+    // PREVIEW watermark overlay
+    var wm = document.createElement('div');
+    wm.className = 'preview-watermark-overlay';
+    frame.appendChild(wm);
+
+    wrap.appendChild(frame);
+    container.appendChild(wrap);
+  });
 }
 
 function updatePageIndicator() {
@@ -1180,75 +1250,6 @@ function updatePageIndicator() {
   if (indicator) {
     indicator.textContent = currentPageCount === 1 ? 'Single page' : currentPageCount + ' pages';
   }
-}
-
-// Render all pages stacked vertically
-function renderPreviewPages() {
-  renderStackedPages('preview-pages');
-  renderStackedPages('mobile-preview-pages');
-}
-
-function renderStackedPages(containerId) {
-  var container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-
-  // Single page mode: render all content in one frame, scaled to fit — no splits at all
-  if (maxPages === 1) {
-    var wrap = document.createElement('div');
-    wrap.className = 'preview-page-wrap';
-
-    var frame = document.createElement('div');
-    frame.className = 'preview-frame';
-    var inner = document.createElement('div');
-    inner.className = 'preview-inner';
-    inner.innerHTML = buildPagedPreviewHTML(1, true);
-    frame.appendChild(inner);
-    wrap.appendChild(frame);
-    container.appendChild(wrap);
-
-    requestAnimationFrame(function() { scalePreviewToFit(inner); });
-    return;
-  }
-
-  // Multi-page mode: stack pages with dividers between them
-  for (var p = 1; p <= currentPageCount; p++) {
-    var wrap = document.createElement('div');
-    wrap.className = 'preview-page-wrap';
-
-    if (currentPageCount > 1 && p > 1) {
-      var label = document.createElement('div');
-      label.className = 'preview-page-label';
-      label.textContent = '— Page ' + p + ' —';
-      wrap.appendChild(label);
-    }
-
-    var frame = document.createElement('div');
-    frame.className = 'preview-frame';
-    var inner = document.createElement('div');
-    inner.className = 'preview-inner';
-    inner.innerHTML = buildPagedPreviewHTML(p, true);
-    frame.appendChild(inner);
-    wrap.appendChild(frame);
-    container.appendChild(wrap);
-
-    (function(innerEl) {
-      requestAnimationFrame(function() { scalePreviewToFit(innerEl); });
-    })(inner);
-  }
-}
-
-function scalePreviewToFit(previewEl) {
-  var inner = previewEl.querySelector('.paged-content-wrap');
-  if (!inner) return;
-  var boxWidth = previewEl.offsetWidth;
-  if (boxWidth === 0) {
-    var frame = previewEl.closest('.preview-frame');
-    boxWidth = frame ? frame.offsetWidth : 380;
-  }
-  var scale = boxWidth / 595;
-  inner.style.transformOrigin = 'top left';
-  inner.style.transform = 'scale(' + scale + ')';
 }
 
 // Build content windowed to a specific page
@@ -1626,13 +1627,8 @@ function formatDate(dateStr) {
 function openMobilePreview() {
   document.getElementById('mobile-preview-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  updatePreview();
-  // Rescale after overlay is visible so offsetWidth is correct
-  setTimeout(function() {
-    document.querySelectorAll('#mobile-preview-pages .preview-inner').forEach(function(inner) {
-      scalePreviewToFit(inner);
-    });
-  }, 50);
+  // Render immediately (real file) — force a render even if debounce pending
+  renderRealPreview();
 }
 function closeMobilePreview() {
   document.getElementById('mobile-preview-overlay').classList.remove('open');
@@ -1957,10 +1953,10 @@ function buildPaginatedContent() {
   return paginatedCache;
 }
 
-function renderAllPages(callback) {
-  document.getElementById('generating-overlay').classList.add('open');
+function renderAllPages(callback, quiet) {
+  if (!quiet) document.getElementById('generating-overlay').classList.add('open');
 
-  var proceed = function() { renderAllPagesInner(callback); };
+  var proceed = function() { renderAllPagesInner(callback, quiet); };
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(proceed).catch(proceed);
   } else {
@@ -1968,8 +1964,8 @@ function renderAllPages(callback) {
   }
 }
 
-function renderAllPagesInner(callback) {
-  document.getElementById('generating-overlay').classList.add('open');
+function renderAllPagesInner(callback, quiet) {
+  if (!quiet) document.getElementById('generating-overlay').classList.add('open');
 
   var container = document.getElementById('pdf-render-container');
   var pageHeight = 842;
@@ -1978,7 +1974,7 @@ function renderAllPagesInner(callback) {
   var scrollX = window.scrollX;
   var scrollY = window.scrollY;
   var origOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
+  if (!quiet) document.body.style.overflow = 'hidden';
 
   // Build paginated content (sections pushed so none cross page boundaries)
   var paginated = buildPaginatedContent();
@@ -2019,16 +2015,18 @@ function renderAllPagesInner(callback) {
     }
   }
 
-  var delay = isMobile() ? 1200 : 500;
+  var delay = quiet ? (isMobile() ? 400 : 150) : (isMobile() ? 1200 : 500);
 
   var cleanup = function() {
     container.innerHTML = '';
     container.style.display = 'none';
     container.style.height = '842px';
     container.style.overflow = 'hidden';
-    document.body.style.overflow = origOverflow;
-    window.scrollTo(scrollX, scrollY);
-    document.getElementById('generating-overlay').classList.remove('open');
+    if (!quiet) {
+      document.body.style.overflow = origOverflow;
+      window.scrollTo(scrollX, scrollY);
+      document.getElementById('generating-overlay').classList.remove('open');
+    }
   };
 
   var scaleAttempts = [3, 2, 1.5];
@@ -2237,13 +2235,6 @@ function loadAutoSave() {
     }
   } catch(e) {}
 }
-
-// Rescale preview pages on window resize
-window.addEventListener('resize', function() {
-  document.querySelectorAll('#preview-pages .preview-inner, #mobile-preview-pages .preview-inner').forEach(function(inner) {
-    scalePreviewToFit(inner);
-  });
-});
 
 // INIT
 loadAutoSave();
