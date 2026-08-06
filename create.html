@@ -121,6 +121,21 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 .icon-btn.active { background: var(--rose-bg); border-color: var(--rose); }
 .icon-btn:hover:not(.active) { border-color: var(--rose); }
 
+/* TEMPLATE SWITCHER */
+.template-switcher { display: flex; gap: 8px; flex-wrap: wrap; }
+.template-thumb-btn {
+  width: 62px; height: 80px; border-radius: 8px; border: 2.5px solid transparent;
+  cursor: pointer; overflow: hidden; position: relative; transition: all var(--transition);
+  background-size: cover; background-position: center top; flex-shrink: 0; padding: 0;
+}
+.template-thumb-btn:hover { border-color: var(--gold-light); }
+.template-thumb-btn.active { border-color: var(--rose); box-shadow: 0 0 0 1px var(--rose); }
+.template-thumb-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  font-size: 8px; font-weight: 600; text-align: center; padding: 3px 2px;
+  background: rgba(0,0,0,0.45); color: #fff; line-height: 1.2;
+}
+
 /* PREVIEW PANEL */
 .preview-container { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-soft); }
 .preview-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -299,6 +314,21 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
   <!-- FORM PANEL -->
   <div class="form-panel">
+
+    <!-- TEMPLATE SWITCHER -->
+    <div class="form-card" id="sec-template">
+      <div class="form-card-header" onclick="toggleCollapse('sec-template')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Template
+        </div>
+        <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+      </div>
+      <div class="form-card-body">
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:10px">Tap a template to switch. Your details are preserved.</div>
+        <div class="template-switcher" id="template-switcher"></div>
+      </div>
+    </div>
 
     <!-- RELIGIOUS ICON -->
     <div class="form-card" id="sec-icon">
@@ -850,7 +880,49 @@ function init() {
   renderColorPresets();
   renderFontSelect();
   renderIconSelect();
+  renderTemplateSwitcher();
   updateRectangleAvailability();
+  updatePreview();
+}
+
+function renderTemplateSwitcher() {
+  var el = document.getElementById('template-switcher');
+  if (!el) return;
+  el.innerHTML = '';
+  Object.keys(TEMPLATES).forEach(function(id) {
+    var tmpl = TEMPLATES[id];
+    var btn = document.createElement('button');
+    btn.className = 'template-thumb-btn' + (id === currentTemplateId ? ' active' : '');
+    if (tmpl.bgImage) {
+      btn.style.backgroundImage = 'url(' + tmpl.bgImage + ')';
+    } else {
+      btn.style.background = '#F5F0EA';
+    }
+    // Label
+    var label = document.createElement('div');
+    label.className = 'template-thumb-label';
+    // Convert id to readable name: 'kalash-ornate' → 'Kalash'
+    label.textContent = id.split('-')[0].charAt(0).toUpperCase() + id.split('-')[0].slice(1);
+    btn.appendChild(label);
+    btn.onclick = function() { switchTemplate(id); };
+    btn.title = id.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    el.appendChild(btn);
+  });
+}
+
+function switchTemplate(id) {
+  if (!TEMPLATES[id]) return;
+  currentTemplateId = id;
+  currentTemplate = TEMPLATES[id];
+  maxPages = currentTemplate.singlePage ? 1 : 3;
+  // Invalidate cached paginated content
+  paginatedCache = { html: '', pageCount: 1 };
+  // Update URL param without reloading
+  var url = new URL(window.location.href);
+  url.searchParams.set('template', id);
+  window.history.replaceState({}, '', url.toString());
+  // Re-render switcher to update active state
+  renderTemplateSwitcher();
   updatePreview();
 }
 
