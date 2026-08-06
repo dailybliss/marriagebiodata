@@ -667,6 +667,16 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
         <div class="field-label" style="margin-top:16px;margin-bottom:8px">Display font</div>
         <div class="font-select" id="font-select"></div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-light)">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+            <div class="section-toggle" id="single-page-toggle" onclick="toggleSinglePage(this)"></div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-dark)">Fit to one page</div>
+              <div style="font-size:11px;color:var(--text-light);margin-top:2px">All content scaled to fit a single A4 page</div>
+            </div>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -884,8 +894,36 @@ function init() {
   renderFontSelect();
   renderIconSelect();
   renderTemplateSwitcher();
+  syncSinglePageToggle();
   updateRectangleAvailability();
   updatePreview();
+}
+
+function toggleSinglePage(btn) {
+  var isOn = btn.classList.contains('on');
+  if (isOn) {
+    // Turn off — restore template default
+    btn.classList.remove('on');
+    maxPages = currentTemplate.singlePage ? 1 : 3;
+  } else {
+    // Turn on — force single page
+    btn.classList.add('on');
+    maxPages = 1;
+  }
+  // Invalidate cache and re-render
+  paginatedCache = { html: '', pageCount: 1 };
+  updatePreview();
+}
+
+function syncSinglePageToggle() {
+  var btn = document.getElementById('single-page-toggle');
+  if (!btn) return;
+  // Reflect current state: on if maxPages === 1 AND template isn't naturally single page
+  if (maxPages === 1) {
+    btn.classList.add('on');
+  } else {
+    btn.classList.remove('on');
+  }
 }
 
 function renderTemplateSwitcher() {
@@ -926,6 +964,7 @@ function switchTemplate(id) {
   window.history.replaceState({}, '', url.toString());
   // Re-render switcher to update active state
   renderTemplateSwitcher();
+  syncSinglePageToggle();
   updatePreview();
 }
 
