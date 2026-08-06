@@ -835,7 +835,10 @@ var TEMPLATES = {
 
 function getTemplateId() {
   var params = new URLSearchParams(window.location.search);
-  return params.get('template') || 'royal-maroon';
+  var id = params.get('template');
+  // If the id is valid use it, otherwise fall back to the first available template
+  if (id && TEMPLATES[id]) return id;
+  return Object.keys(TEMPLATES)[0];
 }
 
 var currentTemplateId = getTemplateId();
