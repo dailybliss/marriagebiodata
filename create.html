@@ -1262,12 +1262,11 @@ function buildPagedPreviewHTML(pageNum, includeWatermark) {
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
 
   if (maxPages === 1 && naturalHeight > pageHeight) {
-    // Single page mode: scale all content down to fit one page — no clipping, no joins
+    // Single page mode: scale content to fit height AND fill full width
+    // (widen base width so scaled width == page width) — matches the download.
     var fitScale = (pageHeight / naturalHeight) * 0.99;
-    var scaledWidth = 595 * fitScale;
-    var xOffset = (595 - scaledWidth) / 2;
-    html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + naturalHeight + 'px;';
-    html += 'transform:translateX(' + xOffset + 'px) scale(' + fitScale + ');transform-origin:top left;">';
+    html += '<div style="position:absolute;top:0;left:0;width:' + (595 / fitScale) + 'px;height:' + naturalHeight + 'px;';
+    html += 'transform:scale(' + fitScale + ');transform-origin:top left;">';
     html += contentHTML;
     html += '</div>';
   } else {
@@ -1998,10 +1997,11 @@ function renderAllPagesInner(callback) {
   if (maxPages === 1) {
     if (naturalHeight > pageHeight) {
       var fitScale = (pageHeight / naturalHeight) * 0.99;
-      var scaledWidth = pageWidth * fitScale;
-      var xOffset = (pageWidth - scaledWidth) / 2;
+      // Mirror the live preview exactly: scale the content to fit height and
+      // fill the full width (widen base so scaled width == page width).
       pvContent.style.transformOrigin = 'top left';
-      pvContent.style.transform = 'translateX(' + xOffset + 'px) scale(' + fitScale + ')';
+      pvContent.style.transform = 'scale(' + fitScale + ')';
+      pvContent.style.width = (pageWidth / fitScale) + 'px';
     }
     container.style.height = pageHeight + 'px';
     container.style.overflow = 'hidden';
