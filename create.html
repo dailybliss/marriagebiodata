@@ -1232,9 +1232,20 @@ function buildPagedPreviewHTML(pageNum, includeWatermark) {
   var offset = (pageNum - 1) * pageHeight;
 
   var html = '<div class="paged-content-wrap" style="position:absolute;top:0;left:0;width:595px;height:842px;overflow:hidden;">';
-  // Clip to exactly one page height, offset to show this page
   html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + pageHeight + 'px;overflow:hidden;">';
-  html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+
+  // When single-page mode is on and content is taller than one page,
+  // apply the same fit scale as the download so preview matches output exactly
+  var naturalHeight = paginatedCache.naturalHeight || totalHeight;
+  if (maxPages === 1 && naturalHeight > pageHeight) {
+    var fitScale = (pageHeight / naturalHeight) * 0.99;
+    var scaledWidth = 595 * fitScale;
+    var xOffset = (595 - scaledWidth) / 2;
+    html += '<div style="position:absolute;top:0;left:0;width:595px;height:' + naturalHeight + 'px;transform:translateX(' + xOffset + 'px) scale(' + fitScale + ');transform-origin:top left;">';
+  } else {
+    html += '<div style="position:absolute;top:' + (-offset) + 'px;left:0;width:595px;height:' + totalHeight + 'px;">';
+  }
+
   html += contentHTML;
   html += '</div>';
   html += '</div>';
