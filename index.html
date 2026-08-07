@@ -47,7 +47,7 @@ body {
   position: relative;
   background: linear-gradient(135deg, #1A6B8B 0%, #1E8B6A 30%, #2A9B5A 55%, #8B9B2A 80%, #6B8B3A 100%);
   overflow: hidden;
-  padding: 20px 16px 20px;
+  padding: 20px 0 20px;
 }
 .showcase::before {
   content: '';
@@ -58,15 +58,6 @@ body {
               radial-gradient(ellipse at 55% 90%, rgba(50,150,200,0.2) 0%, transparent 50%);
   pointer-events: none;
 }
-.showcase-label {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
-  margin-top: 10px;
-}
 .showcase-heading {
   text-align: center;
   font-family: 'Dancing Script', cursive;
@@ -76,56 +67,46 @@ body {
   margin-bottom: 16px;
   line-height: 1.1;
   white-space: nowrap;
+  padding: 0 16px;
 }
-.showcase-slides {
+/* Peek carousel */
+.showcase-viewport {
+  overflow: hidden;
+  width: 100%;
   position: relative;
-  max-width: min(280px, 72vw);
-  margin: 0 auto;
 }
 .showcase-track {
-  position: relative;
-  width: 100%;
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  align-items: center;
 }
 .showcase-slide {
-  display: none;
-  position: relative;
+  flex-shrink: 0;
+  width: 68vw;
+  max-width: 280px;
+  padding: 0 6px;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  opacity: 0.45;
+  transform: scale(0.92);
 }
-.showcase-slide.active { display: block; }
+.showcase-slide.active {
+  opacity: 1;
+  transform: scale(1);
+}
 .showcase-slide img {
   width: 100%;
   border-radius: 0;
   box-shadow: 0 12px 48px rgba(0,0,0,0.5);
   display: block;
 }
-/* Prev / next arrows */
-.showcase-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition);
-  z-index: 2;
-}
-.showcase-arrow:hover { background: rgba(255,255,255,0.28); }
-.showcase-arrow svg { width: 18px; height: 18px; }
-.showcase-prev { left: -44px; }
-.showcase-next { right: -44px; }
 /* Dots */
 .showcase-dots {
   display: flex;
   justify-content: center;
   gap: 6px;
   margin-top: 12px;
+  padding: 0 16px;
 }
 .showcase-dot {
   width: 6px;
@@ -141,6 +122,16 @@ body {
   background: #fff;
   width: 20px;
   border-radius: 3px;
+}
+.showcase-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-top: 10px;
+  padding: 0 16px;
 }
 .showcase-cta {
   display: block;
@@ -162,16 +153,11 @@ body {
 .showcase-cta:hover { opacity: 0.88; }
 
 @media (min-width: 480px) {
-  .showcase { padding: 22px 16px 22px; }
-  .showcase-slides { max-width: min(320px, 68vw); }
-  .showcase-prev { left: -48px; }
-  .showcase-next { right: -48px; }
+  .showcase-slide { width: 60vw; max-width: 300px; }
 }
 @media (min-width: 769px) {
-  .showcase { padding: 24px 16px 22px; }
-  .showcase-slides { max-width: 300px; }
-  .showcase-prev { left: -52px; }
-  .showcase-next { right: -52px; }
+  .showcase { padding: 24px 0 22px; }
+  .showcase-slide { width: 320px; max-width: 320px; }
 }
 
 /* NAV */
@@ -798,8 +784,8 @@ body {
 <section class="showcase">
   <h1 class="showcase-heading">Beautiful biodata made in minutes</h1>
 
-  <div class="showcase-slides">
-    <div class="showcase-track">
+  <div class="showcase-viewport">
+    <div class="showcase-track" id="showcase-track">
       <div class="showcase-slide active">
         <img src="showcase/Anamika_Sharma_biodata_1.png" alt="Sample marriage biodata 1" loading="eager">
       </div>
@@ -813,13 +799,6 @@ body {
         <img src="showcase/Anamika_Sharma_biodata_4.png" alt="Sample marriage biodata 4" loading="lazy">
       </div>
     </div>
-
-    <button class="showcase-arrow showcase-prev" onclick="showcaseMove(-1)" aria-label="Previous">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15,18 9,12 15,6"/></svg>
-    </button>
-    <button class="showcase-arrow showcase-next" onclick="showcaseMove(1)" aria-label="Next">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,6 15,12 9,18"/></svg>
-    </button>
   </div>
 
   <div class="showcase-dots" id="showcase-dots">
@@ -1238,14 +1217,25 @@ var showcaseIdx = 0;
 var showcaseTotal = 4;
 var showcaseTimer = null;
 
-function showcaseGoTo(idx) {
+function showcaseUpdateTrack() {
+  var track = document.getElementById('showcase-track');
   var slides = document.querySelectorAll('.showcase-slide');
+  var viewport = track.parentElement;
+  var vpW = viewport.offsetWidth;
+  var slideW = slides[0] ? slides[0].offsetWidth : 280;
+  // Centre the active slide: offset so active slide is in the middle of viewport
+  var offset = (vpW / 2) - (slideW / 2) - (showcaseIdx * slideW);
+  track.style.transform = 'translateX(' + offset + 'px)';
+  slides.forEach(function(s, i) {
+    s.classList.toggle('active', i === showcaseIdx);
+  });
   var dots = document.querySelectorAll('.showcase-dot');
-  slides[showcaseIdx].classList.remove('active');
-  dots[showcaseIdx].classList.remove('active');
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === showcaseIdx); });
+}
+
+function showcaseGoTo(idx) {
   showcaseIdx = (idx + showcaseTotal) % showcaseTotal;
-  slides[showcaseIdx].classList.add('active');
-  dots[showcaseIdx].classList.add('active');
+  showcaseUpdateTrack();
   resetShowcaseTimer();
 }
 
@@ -1258,8 +1248,12 @@ function resetShowcaseTimer() {
   showcaseTimer = setInterval(function() { showcaseMove(1); }, 3500);
 }
 
-// Auto-advance
-resetShowcaseTimer();
+// Init track position after layout
+window.addEventListener('load', function() {
+  showcaseUpdateTrack();
+  resetShowcaseTimer();
+});
+window.addEventListener('resize', showcaseUpdateTrack);
 
 // Pause on hover
 var showcaseEl = document.querySelector('.showcase');
@@ -1268,13 +1262,13 @@ if (showcaseEl) {
   showcaseEl.addEventListener('mouseleave', resetShowcaseTimer);
 }
 
-// Touch swipe support
+// Touch swipe
 (function() {
-  var track = document.querySelector('.showcase-track');
-  if (!track) return;
+  var viewport = document.querySelector('.showcase-viewport');
+  if (!viewport) return;
   var startX = 0;
-  track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend', function(e) {
+  viewport.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+  viewport.addEventListener('touchend', function(e) {
     var diff = startX - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) showcaseMove(diff > 0 ? 1 : -1);
   }, { passive: true });
