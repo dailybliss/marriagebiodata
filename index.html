@@ -76,28 +76,20 @@ body {
   position: relative;
 }
 .showcase-track {
-  display: flex;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-  align-items: center;
+  position: relative;
+  width: 100%;
+  min-height: 300px;
 }
 .showcase-slide {
-  flex-shrink: 0;
-  width: 68vw;
-  max-width: 280px;
-  padding: 0 6px;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  opacity: 0.45;
-  transform: scale(0.92);
-}
-.showcase-slide.active {
-  opacity: 1;
-  transform: scale(1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
 }
 .showcase-slide img {
   width: 100%;
   border-radius: 0;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
   display: block;
 }
 /* Dots */
@@ -1218,44 +1210,82 @@ var showcaseTotal = 4;
 var showcaseTimer = null;
 
 function showcaseUpdateTrack() {
-  var track = document.getElementById('showcase-track');
   var slides = document.querySelectorAll('.showcase-slide');
-  var viewport = track.parentElement;
+  var viewport = document.querySelector('.showcase-viewport');
+  if (!viewport || !slides.length) return;
+
   var vpW = viewport.offsetWidth;
-  var slideW = slides[0] ? slides[0].offsetWidth : 280;
-  // Centre the active slide: offset so active slide is in the middle of viewport
-  var offset = (vpW / 2) - (slideW / 2) - (showcaseIdx * slideW);
-  track.style.transform = 'translateX(' + offset + 'px)';
-  slides.forEach(function(s, i) {
-    s.classList.toggle('active', i === showcaseIdx);
+  var slideW = vpW * 0.62; // active slide takes 62% of viewport
+  var peekW = (vpW - slideW) / 2; // each side peek = remaining half
+
+  slides.forEach(function(slide, i) {
+    var rel = ((i - showcaseIdx) % showcaseTotal + showcaseTotal) % showcaseTotal;
+    // rel: 0=active(centre), 1=next(right peek), 2=hidden, 3=prev(left peek)
+    var left, opacity, scale, zIndex, display;
+    if (rel === 0) {
+      left = peekW; opacity = 1; scale = 1; zIndex = 2; display = 'block';
+    } else if (rel === 1) {
+      left = peekW + slideW; opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block';
+    } else if (rel === 3) {
+      left = peekW - slideW; opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block';
+    } else {
+      display = 'none'; opacity = 0; scale = 0.8; zIndex = 0; left = peekW;
+    }
+    slide.style.display = display;
+    slide.style.width = slideW + 'px';
+    slide.style.position = 'absolute';
+    slide.style.top = '0';
+    slide.style.left = left + 'px';
+    slide.style.transform = 'scale(' + scale + ')';
+    slide.style.transformOrigin = 'top center';
+    slide.style.opacity = opacity;
+    slide.style.zIndex = zIndex;
+    slide.style.transition = 'left 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s ease, opacity 0.4s ease';
+    slide.classList.toggle('active', rel === 0);
   });
+
+  // Set track height to tallest visible slide
+  var active = slides[showcaseIdx];
+  var track = document.getElementById('showcase-track');
+  if (track && active) {
+    // Use aspect ratio of A4 portrait image: ~0.707 width/height ratio
+    track.style.height = Math.round(slideW / 0.707) + 'px';
+  }
+
+  // Update dots
   var dots = document.querySelectorAll('.showcase-dot');
   dots.forEach(function(d, i) { d.classList.toggle('active', i === showcaseIdx); });
 }
 
 function showcaseGoTo(idx) {
-  showcaseIdx = (idx + showcaseTotal) % showcaseTotal;
+  showcaseIdx = ((idx % showcaseTotal) + showcaseTotal) % showcaseTotal;
   showcaseUpdateTrack();
   resetShowcaseTimer();
 }
 
-function showcaseMove(dir) {
-  showcaseGoTo(showcaseIdx + dir);
-}
+function showcaseMove(dir) { showcaseGoTo(showcaseIdx + dir); }
 
 function resetShowcaseTimer() {
   clearInterval(showcaseTimer);
   showcaseTimer = setInterval(function() { showcaseMove(1); }, 3500);
 }
 
-// Init track position after layout
-window.addEventListener('load', function() {
+function showcaseInit() {
+  var viewport = document.querySelector('.showcase-viewport');
+  if (!viewport || viewport.offsetWidth === 0) {
+    // Layout not ready yet — retry shortly
+    setTimeout(showcaseInit, 60);
+    return;
+  }
   showcaseUpdateTrack();
   resetShowcaseTimer();
-});
+}
+
+// Run as soon as possible, plus on load as a fallback
+showcaseInit();
+window.addEventListener('load', showcaseUpdateTrack);
 window.addEventListener('resize', showcaseUpdateTrack);
 
-// Pause on hover
 var showcaseEl = document.querySelector('.showcase');
 if (showcaseEl) {
   showcaseEl.addEventListener('mouseenter', function() { clearInterval(showcaseTimer); });
