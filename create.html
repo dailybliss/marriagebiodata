@@ -1904,30 +1904,37 @@ function buildPaginatedContent() {
           break;
         }
 
-        // Case B: section fits entirely on this page but overruns the bottom
-        // margin → move the whole section to the next page's content start
-        if (bottom > contentEnd && h <= usable) {
-          insertSpacerBefore(sec, ((page + 1) * pageHeight + TOP_MARGIN) - top);
-          changed = true;
-          break;
-        }
-
-        // Case C: section is TALLER than a full usable page and overruns the
-        // bottom margin → split it: find the last field row that still fits on
-        // this page and push everything AFTER it to the next page.
-        if (bottom > contentEnd && h > usable) {
+        // Section overruns the bottom margin. Rather than moving the whole
+        // section to the next page (which wastes space on this page), split it
+        // at a field-row boundary: keep the title + rows that fit here, and push
+        // only the overflowing rows to the next page.
+        if (bottom > contentEnd) {
           var rows = sec.querySelectorAll('.pv-field, .pv-sec-title, .pv-pref-text');
           var splitRow = null;
+          var splitRowIdx = -1;
           for (var r = 0; r < rows.length; r++) {
             var rTop = relTop(rows[r]);
             var rBottom = rTop + rows[r].offsetHeight;
-            if (rBottom > contentEnd) { splitRow = rows[r]; break; }
+            if (rBottom > contentEnd) { splitRow = rows[r]; splitRowIdx = r; break; }
           }
-          if (splitRow && splitRow !== rows[0]) {
-            var sTop = relTop(splitRow);
-            insertSpacerBefore(splitRow, ((page + 1) * pageHeight + TOP_MARGIN) - sTop);
-            changed = true;
-            break;
+
+          if (splitRow) {
+            // How many rows fit on the current page before the split?
+            // rows[0] is the section title. We need the title + at least one
+            // data row to remain, otherwise the title would be orphaned —
+            // in that case move the whole section to the next page instead.
+            var keepsTitlePlusRow = splitRowIdx >= 2; // 0=title,1=first row → need idx>=2
+            if (keepsTitlePlusRow) {
+              var sTop = relTop(splitRow);
+              insertSpacerBefore(splitRow, ((page + 1) * pageHeight + TOP_MARGIN) - sTop);
+              changed = true;
+              break;
+            } else {
+              // Not enough of the section fits — move the whole section down
+              insertSpacerBefore(sec, ((page + 1) * pageHeight + TOP_MARGIN) - top);
+              changed = true;
+              break;
+            }
           }
         }
       }
@@ -1998,6 +2005,18 @@ function renderAllPagesInner(callback, quiet) {
       var xOffset = (pageWidth - scaledWidth) / 2;
       pvContent.style.transformOrigin = 'top left';
       pvContent.style.transform = 'translateX(' + xOffset + 'px) scale(' + fitScale + ')';
+      // Keep the background filling the full page (do NOT scale it), so the
+      // template art spans edge-to-edge exactly as at full size.
+      var bgEl = container.querySelector('.pv-bg');
+      if (bgEl) {
+        bgEl.style.width = pageWidth + 'px';
+        bgEl.style.height = pageHeight + 'px';
+        bgEl.style.transform = 'none';
+        if (currentTemplate.bgImage) {
+          bgEl.style.backgroundSize = '100% 100%';
+          bgEl.style.backgroundRepeat = 'no-repeat';
+        }
+      }
     }
     container.style.height = pageHeight + 'px';
     container.style.overflow = 'hidden';
