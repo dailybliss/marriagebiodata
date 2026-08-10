@@ -64,6 +64,15 @@ body { font-family: var(--font-body); background: #F4F0EA; color: var(--text-dar
 .section-toggle.on { background: var(--green); }
 .section-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left var(--transition); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
 .section-toggle.on::after { left: 18px; }
+/* Multi-page only sections — greyed out with lock badge when single page is active */
+.multipage-only-locked { opacity: 0.45; pointer-events: none; position: relative; }
+.multipage-only-locked::after {
+  content: 'Multi-page only';
+  position: absolute; top: 12px; right: 12px;
+  font-size: 10px; font-weight: 600; color: var(--text-light);
+  background: var(--bg-accent); border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 10px; pointer-events: none;
+}
 .collapse-icon { width: 20px; height: 20px; transition: transform var(--transition); color: var(--text-light); }
 .form-card.collapsed .collapse-icon { transform: rotate(-90deg); }
 .form-card-body { padding: 0 16px 16px; }
@@ -425,8 +434,8 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/400</span></div>
-            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
+            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/200</span></div>
+            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="200" oninput="updateCharCount('aboutMe','aboutme-count',200);updatePreview()" style="min-height:80px"></textarea>
           </div>
         </div>
       </div>
@@ -789,8 +798,8 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Describe your ideal partner</div>
-            <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." oninput="updatePreview()"></textarea>
+            <div class="field-label">Describe your ideal partner <span style="font-size:10px;color:var(--text-light)" id="prefs-count">0/200</span></div>
+            <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." maxlength="200" oninput="updateCharCount('partnerPrefs','prefs-count',200);updatePreview()"></textarea>
           </div>
         </div>
       </div>
@@ -1178,31 +1187,57 @@ function init() {
   renderRealPreview(); // render the real file immediately on load
 }
 
+// Sections that are only available in multi-page mode
+var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage'];
+
+function applyMultipageRestrictions() {
+  var isSingle = maxPages === 1;
+  MULTIPAGE_ONLY_SECTIONS.forEach(function(id) {
+    var card = document.getElementById(id);
+    if (!card) return;
+    if (isSingle) {
+      card.classList.add('multipage-only-locked');
+      // Force these sections hidden in the biodata when single page
+      var sec = card.querySelector('.section-toggle');
+      if (sec) {
+        var sectionName = sec.getAttribute('data-section');
+        if (sectionName) hiddenSections[sectionName] = true;
+      }
+    } else {
+      card.classList.remove('multipage-only-locked');
+      // Restore section visibility based on toggle state
+      var sec = card.querySelector('.section-toggle');
+      if (sec) {
+        var sectionName = sec.getAttribute('data-section');
+        if (sectionName) hiddenSections[sectionName] = !sec.classList.contains('on');
+      }
+    }
+  });
+}
+
 function toggleSinglePage(btn) {
   var isOn = btn.classList.contains('on');
   if (isOn) {
-    // Turn off — restore template default
     btn.classList.remove('on');
     maxPages = currentTemplate.singlePage ? 1 : 3;
   } else {
-    // Turn on — force single page
     btn.classList.add('on');
     maxPages = 1;
   }
-  // Invalidate cache and re-render
   paginatedCache = { html: '', pageCount: 1 };
+  applyMultipageRestrictions();
   updatePreview();
 }
 
 function syncSinglePageToggle() {
   var btn = document.getElementById('single-page-toggle');
   if (!btn) return;
-  // Reflect current state: on if maxPages === 1 AND template isn't naturally single page
   if (maxPages === 1) {
     btn.classList.add('on');
   } else {
     btn.classList.remove('on');
   }
+  applyMultipageRestrictions();
 }
 
 function renderTemplateSwitcher() {
