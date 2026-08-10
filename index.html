@@ -78,7 +78,7 @@ body {
 .showcase-track {
   position: relative;
   width: 100%;
-  min-height: 300px;
+  /* Height set dynamically by JS based on active slide image ratio */
 }
 .showcase-slide {
   position: absolute;
@@ -438,7 +438,32 @@ body {
   padding-top: 10px;
   gap: 3px;
 }
-.thumb .th-circle { width: 14px; height: 16px; border-radius: 2px; margin-bottom: 2px; }
+.thumb-price {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(139,26,58,0.88);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  z-index: 2;
+}
+.grid-price {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(139,26,58,0.88);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+  z-index: 2;
+}
 .thumb .th-line { height: 3px; width: 60%; border-radius: 2px; }
 
 /* GRID VIEW MODE */
@@ -1050,7 +1075,8 @@ function createThumb(t, i) {
       '<div class="th-line" style="background:' + t.fieldBg + ';width:45%;opacity:0.8"></div>' +
       '<div class="th-line" style="background:' + t.fieldBg + ';width:55%;opacity:0.8"></div>' +
       '<div class="th-line" style="background:' + t.fieldBg + ';width:40%;opacity:0.8"></div>' +
-    '</div>';
+    '</div>' +
+    '<div class="thumb-price">₹99</div>';
   thumb.onclick = function() { selectTemplate(i); };
   return thumb;
 }
@@ -1098,7 +1124,8 @@ function renderGrid() {
             '<div class="gc-line" style="background:' + t.fieldBg + ';width:55%"></div>' +
           '</div>' +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '<div class="grid-price">₹99</div>';
     item.appendChild(preview);
     var nameTag = document.createElement('div');
     nameTag.className = 'grid-item-name';
@@ -1244,12 +1271,20 @@ function showcaseUpdateTrack() {
     slide.classList.toggle('active', rel === 0);
   });
 
-  // Set track height to tallest visible slide
-  var active = slides[showcaseIdx];
+  // Set track height to match the active slide's actual image height
   var track = document.getElementById('showcase-track');
-  if (track && active) {
-    // Use aspect ratio of A4 portrait image: ~0.707 width/height ratio
-    track.style.height = Math.round(slideW / 0.707) + 'px';
+  if (track) {
+    var activeImg = slides[showcaseIdx] ? slides[showcaseIdx].querySelector('img') : null;
+    if (activeImg && activeImg.naturalHeight > 0) {
+      // Use actual image ratio
+      track.style.height = Math.round(slideW * activeImg.naturalHeight / activeImg.naturalWidth) + 'px';
+    } else if (activeImg) {
+      // Image not loaded yet — use A4 portrait ratio as fallback
+      activeImg.onload = function() { showcaseUpdateTrack(); };
+      track.style.height = Math.round(slideW / 0.707) + 'px';
+    } else {
+      track.style.height = Math.round(slideW / 0.707) + 'px';
+    }
   }
 
   // Update dots
