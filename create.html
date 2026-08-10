@@ -136,6 +136,15 @@ textarea.field-input { resize: vertical; min-height: 60px; }
   background: rgba(0,0,0,0.45); color: #fff; line-height: 1.2;
 }
 
+/* EXTRA PHOTO SLOTS */
+.extra-photo-slot { display: flex; flex-direction: column; gap: 4px; }
+.extra-photo-preview { width: 100%; aspect-ratio: 3/4; background: var(--bg-accent); border: 1.5px dashed var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-light); font-size: 11px; overflow: hidden; }
+.extra-photo-preview svg { width: 28px; height: 28px; }
+.extra-photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.extra-photo-btn { font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; cursor: pointer; color: var(--text-mid); }
+.extra-photo-btn:hover { border-color: var(--rose); color: var(--rose); }
+.extra-photo-remove { font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; cursor: pointer; color: var(--text-light); }
+
 /* PREVIEW PANEL */
 .preview-container { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-soft); }
 .preview-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -502,9 +511,46 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           </div>
         </div>
         <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">Income <button class="field-hide-btn" data-field="income" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="income" placeholder="e.g. 25 LPA" oninput="updatePreview()">
+          <div class="field-group full">
+            <div class="field-label" style="display:flex;align-items:center;justify-content:space-between">
+              <span>Income <button class="field-hide-btn" data-field="income" onclick="toggleField(this)">Hide</button></span>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--text-mid);cursor:pointer">
+                <input type="checkbox" id="income-range-toggle" onchange="toggleIncomeRange(this)" style="accent-color:var(--rose)"> Range
+              </label>
+            </div>
+            <div id="income-exact" style="display:block">
+              <input class="field-input" data-field="income" placeholder="e.g. 25 LPA" oninput="updatePreview()">
+            </div>
+            <div id="income-range" style="display:none">
+              <div style="display:flex;gap:8px;align-items:center">
+                <select class="field-input" id="income-from" onchange="updateIncomeRange()" style="flex:1">
+                  <option value="">From</option>
+                  <option>Below ₹3 LPA</option>
+                  <option>₹3–5 LPA</option>
+                  <option>₹5–8 LPA</option>
+                  <option>₹8–12 LPA</option>
+                  <option>₹12–18 LPA</option>
+                  <option>₹18–25 LPA</option>
+                  <option>₹25–40 LPA</option>
+                  <option>₹40–60 LPA</option>
+                  <option>₹60–100 LPA</option>
+                  <option>Above ₹100 LPA</option>
+                </select>
+                <span style="font-size:12px;color:var(--text-light)">to</span>
+                <select class="field-input" id="income-to" onchange="updateIncomeRange()" style="flex:1">
+                  <option value="">To</option>
+                  <option>₹3–5 LPA</option>
+                  <option>₹5–8 LPA</option>
+                  <option>₹8–12 LPA</option>
+                  <option>₹12–18 LPA</option>
+                  <option>₹18–25 LPA</option>
+                  <option>₹25–40 LPA</option>
+                  <option>₹40–60 LPA</option>
+                  <option>₹60–100 LPA</option>
+                  <option>Above ₹100 LPA</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -600,6 +646,112 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
+    <!-- ABOUT ME (optional, multi-page preferred) -->
+    <div class="form-card" id="sec-aboutme">
+      <div class="form-card-header" onclick="toggleCollapse('sec-aboutme')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          About me
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="aboutme" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/400</span></div>
+            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about your personality, values, lifestyle and what makes you, you..." maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATERNAL FAMILY (optional, multi-page) -->
+    <div class="form-card" id="sec-paternal">
+      <div class="form-card-header" onclick="toggleCollapse('sec-paternal')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Paternal family
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="paternal" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Paternal grandfather</div>
+            <input class="field-input" data-field="paternalGrandfather" placeholder="Name" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">His occupation</div>
+            <input class="field-input" data-field="paternalGrandfatherOcc" placeholder="e.g. Retired IAS Officer" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Paternal grandmother</div>
+            <input class="field-input" data-field="paternalGrandmother" placeholder="Name" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Native place</div>
+            <input class="field-input" data-field="paternalNative" placeholder="e.g. Varanasi, UP" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Father's siblings</div>
+            <input class="field-input" data-field="fatherSiblings" placeholder="e.g. Two uncles (CA, Doctor), One aunt (Homemaker)" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERNAL FAMILY (optional, multi-page) -->
+    <div class="form-card" id="sec-maternal">
+      <div class="form-card-header" onclick="toggleCollapse('sec-maternal')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Maternal family
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="maternal" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Maternal grandfather</div>
+            <input class="field-input" data-field="maternalGrandfather" placeholder="Name" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">His occupation</div>
+            <input class="field-input" data-field="maternalGrandfatherOcc" placeholder="e.g. Retired Professor" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Maternal grandmother</div>
+            <input class="field-input" data-field="maternalGrandmother" placeholder="Name" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Maternal native place</div>
+            <input class="field-input" data-field="maternalNative" placeholder="e.g. Lucknow, UP" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Mother's siblings</div>
+            <input class="field-input" data-field="motherSiblings" placeholder="e.g. Two maternal uncles (Business), One maternal aunt" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PARTNER PREFERENCES (optional) -->
     <div class="form-card" id="sec-preferences">
       <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
@@ -656,6 +808,93 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           <div class="field-group full">
             <div class="field-label">Address <button class="field-hide-btn" data-field="address" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="address" placeholder="e.g. Vaishali Nagar, Jaipur, Rajasthan" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTO PAGE (optional, multi-page only) -->
+    <div class="form-card" id="sec-photopage">
+      <div class="form-card-header" onclick="toggleCollapse('sec-photopage')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+          Photo page
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="photopage" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Add a separate page with up to 4 additional photos. Available in multi-page mode only.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="extra-photos-grid">
+          <div class="extra-photo-slot" data-slot="0">
+            <div class="extra-photo-preview" id="extra-photo-preview-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+              <span>Add photo</span>
+            </div>
+            <input type="file" accept="image/*" class="extra-photo-input" data-slot="0" onchange="handleExtraPhoto(this)" style="display:none">
+            <button class="extra-photo-btn" onclick="this.previousElementSibling.click()">Choose</button>
+            <button class="extra-photo-remove" onclick="removeExtraPhoto(0)" style="display:none">Remove</button>
+          </div>
+          <div class="extra-photo-slot" data-slot="1">
+            <div class="extra-photo-preview" id="extra-photo-preview-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+              <span>Add photo</span>
+            </div>
+            <input type="file" accept="image/*" class="extra-photo-input" data-slot="1" onchange="handleExtraPhoto(this)" style="display:none">
+            <button class="extra-photo-btn" onclick="this.previousElementSibling.click()">Choose</button>
+            <button class="extra-photo-remove" onclick="removeExtraPhoto(1)" style="display:none">Remove</button>
+          </div>
+          <div class="extra-photo-slot" data-slot="2">
+            <div class="extra-photo-preview" id="extra-photo-preview-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+              <span>Add photo</span>
+            </div>
+            <input type="file" accept="image/*" class="extra-photo-input" data-slot="2" onchange="handleExtraPhoto(this)" style="display:none">
+            <button class="extra-photo-btn" onclick="this.previousElementSibling.click()">Choose</button>
+            <button class="extra-photo-remove" onclick="removeExtraPhoto(2)" style="display:none">Remove</button>
+          </div>
+          <div class="extra-photo-slot" data-slot="3">
+            <div class="extra-photo-preview" id="extra-photo-preview-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+              <span>Add photo</span>
+            </div>
+            <input type="file" accept="image/*" class="extra-photo-input" data-slot="3" onchange="handleExtraPhoto(this)" style="display:none">
+            <button class="extra-photo-btn" onclick="this.previousElementSibling.click()">Choose</button>
+            <button class="extra-photo-remove" onclick="removeExtraPhoto(3)" style="display:none">Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL MEDIA (optional) -->
+    <div class="form-card" id="sec-social">
+      <div class="form-card-header" onclick="toggleCollapse('sec-social')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Social media
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="social" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">LinkedIn</div>
+            <input class="field-input" data-field="linkedin" placeholder="linkedin.com/in/username" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Instagram</div>
+            <input class="field-input" data-field="instagram" placeholder="@username" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Other</div>
+            <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
           </div>
         </div>
       </div>
@@ -822,7 +1061,11 @@ var formData = {
   maritalStatus: '', diet: '', qualification: '', college: '', occupation: '', company: '',
   income: '', fatherName: '', fatherOccupation: '', motherName: '', motherOccupation: '',
   familyType: '', nativePlace: '', rashi: '', nakshatra: '', manglik: '', partnerPrefs: '',
-  contactPerson: '', contactRelation: '', phone: '', email: '', address: ''
+  contactPerson: '', contactRelation: '', phone: '', email: '', address: '',
+  aboutMe: '',
+  paternalGrandfather: '', paternalGrandfatherOcc: '', paternalGrandmother: '', paternalNative: '', fatherSiblings: '',
+  maternalGrandfather: '', maternalGrandfatherOcc: '', maternalGrandmother: '', maternalNative: '', motherSiblings: '',
+  linkedin: '', instagram: '', socialOther: ''
 };
 
 var hiddenFields = {};
@@ -1402,11 +1645,15 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     // Photo centered above all details
     html += renderPhoto(ac, bgMid, photoW, photoShape, 'margin:0 auto 3%');
     html += '<div class="pv-details">';
+    html += renderAboutMeFields(ac, bgMid);
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
     html += renderFamilyFields(ac, bgMid);
+    html += renderPaternalFamilyFields(ac, bgMid);
+    html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
+    html += renderSocialFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
   } else {
@@ -1414,11 +1661,15 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
     html += renderPhoto(ac, bgMid, photoW, photoShape, '');
     html += '<div class="pv-details">';
+    html += renderAboutMeFields(ac, bgMid);
     html += renderPersonalFields(ac, bgMid);
     html += renderEducationFields(ac, bgMid);
     html += renderFamilyFields(ac, bgMid);
+    html += renderPaternalFamilyFields(ac, bgMid);
+    html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
+    html += renderSocialFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
     html += '</div>';
@@ -1474,6 +1725,148 @@ function photoRatioForShape(shape) {
   if (shape === 'oval') return 3.5/3;
   if (shape === 'rectangle') return 4/3;
   return 1; // rounded square
+}
+
+// ===== EXTRA PHOTOS (Photo Page) =====
+var extraPhotos = [null, null, null, null]; // up to 4 photo data URLs
+
+function handleExtraPhoto(input) {
+  var slot = parseInt(input.getAttribute('data-slot'));
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    extraPhotos[slot] = e.target.result;
+    var preview = document.getElementById('extra-photo-preview-' + slot);
+    preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
+    // Show remove button
+    var removeBtn = input.nextElementSibling.nextElementSibling;
+    if (removeBtn) removeBtn.style.display = 'block';
+    scheduleRealPreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeExtraPhoto(slot) {
+  extraPhotos[slot] = null;
+  var preview = document.getElementById('extra-photo-preview-' + slot);
+  preview.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><span>Add photo</span>';
+  var slot_el = document.querySelector('[data-slot="' + slot + '"]');
+  if (slot_el) {
+    var removeBtn = slot_el.querySelector('.extra-photo-remove');
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+  scheduleRealPreview();
+}
+
+function buildPhotoPageHTML(ac, bgMid) {
+  if (hiddenSections.photopage) return '';
+  var activePhotos = extraPhotos.filter(function(p) { return p !== null; });
+  if (!activePhotos.length) return '';
+
+  var bgImgSrc = currentTemplate.bgImage || null;
+  var bgStyle = bgImgSrc
+    ? 'background-image:url(' + bgImgSrc + ');background-size:100% 842px;background-repeat:no-repeat;background-color:transparent;'
+    : 'background:' + hexToLight(ac) + ';';
+
+  var html = '<div style="position:relative;width:595px;min-height:842px;">';
+  html += '<div style="position:absolute;inset:0;' + bgStyle + '"></div>';
+  html += '<div style="position:relative;z-index:1;padding:40px;box-sizing:border-box;font-family:Lato,sans-serif;">';
+
+  // Page title
+  var isCursive = ['Dancing Script'].indexOf(customize.displayFont) >= 0;
+  html += '<div style="text-align:center;font-family:\'' + customize.displayFont + '\',serif;font-size:20px;font-weight:600;color:' + ac + ';margin-bottom:24px;text-transform:' + (isCursive ? 'none' : 'uppercase') + ';letter-spacing:' + (isCursive ? '0.5px' : '2px') + '">' + (isCursive ? 'More Photos' : 'MORE PHOTOS') + '</div>';
+
+  // Photo grid
+  var count = activePhotos.length;
+  var cols = count === 1 ? 1 : 2;
+  var photoW = count === 1 ? '360px' : '230px';
+  var photoH = count === 1 ? '480px' : '300px';
+  var gridStyle = 'display:flex;flex-wrap:wrap;gap:16px;justify-content:center;';
+
+  html += '<div style="' + gridStyle + '">';
+  activePhotos.forEach(function(src) {
+    html += '<div style="width:' + photoW + ';height:' + photoH + ';border-radius:8px;overflow:hidden;border:1px solid ' + bgMid + '">';
+    html += '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover">';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+function toggleIncomeRange(cb) {
+  document.getElementById('income-exact').style.display = cb.checked ? 'none' : 'block';
+  document.getElementById('income-range').style.display = cb.checked ? 'block' : 'none';
+  updateIncomeRange();
+}
+
+function updateIncomeRange() {
+  var from = document.getElementById('income-from');
+  var to = document.getElementById('income-to');
+  if (!from || !to) return;
+  var f = from.value, t = to.value;
+  formData.income = (f && t) ? f + ' – ' + t : (f || t || '');
+  scheduleRealPreview();
+}
+
+function updateCharCount(field, counterId, max) {
+  var el = document.querySelector('[data-field="' + field + '"]');
+  var counter = document.getElementById(counterId);
+  if (el && counter) counter.textContent = el.value.length + '/' + max;
+}
+
+function renderAboutMeFields(ac, bgMid) {
+  if (hiddenSections.aboutme || !formData.aboutMe) return '';
+  var sz = window._sz;
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('About me', ac, bgMid);
+  html += '<div class="pv-pref-text" style="font-size:' + sz.pref + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.aboutMe + '</div>';
+  html += '</div>';
+  return html;
+}
+
+function renderPaternalFamilyFields(ac, bgMid) {
+  if (hiddenSections.paternal) return '';
+  var has = formData.paternalGrandfather || formData.paternalGrandmother || formData.paternalNative || formData.fatherSiblings;
+  if (!has) return '';
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Paternal family', ac, bgMid);
+  if (formData.paternalGrandfather) {
+    var pgVal = formData.paternalGrandfather + (formData.paternalGrandfatherOcc ? ' — ' + formData.paternalGrandfatherOcc : '');
+    html += renderFieldRow('Paternal grandfather', pgVal, ac, bgMid);
+  }
+  if (formData.paternalGrandmother) html += renderFieldRow('Paternal grandmother', formData.paternalGrandmother, ac, bgMid);
+  if (formData.paternalNative) html += renderFieldRow('Native place', formData.paternalNative, ac, bgMid);
+  if (formData.fatherSiblings) html += renderFieldRow("Father's siblings", formData.fatherSiblings, ac, bgMid);
+  html += '</div>';
+  return html;
+}
+
+function renderMaternalFamilyFields(ac, bgMid) {
+  if (hiddenSections.maternal) return '';
+  var has = formData.maternalGrandfather || formData.maternalGrandmother || formData.maternalNative || formData.motherSiblings;
+  if (!has) return '';
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Maternal family', ac, bgMid);
+  if (formData.maternalGrandfather) {
+    var mgVal = formData.maternalGrandfather + (formData.maternalGrandfatherOcc ? ' — ' + formData.maternalGrandfatherOcc : '');
+    html += renderFieldRow('Maternal grandfather', mgVal, ac, bgMid);
+  }
+  if (formData.maternalGrandmother) html += renderFieldRow('Maternal grandmother', formData.maternalGrandmother, ac, bgMid);
+  if (formData.maternalNative) html += renderFieldRow('Maternal native', formData.maternalNative, ac, bgMid);
+  if (formData.motherSiblings) html += renderFieldRow("Mother's siblings", formData.motherSiblings, ac, bgMid);
+  html += '</div>';
+  return html;
+}
+
+function renderSocialFields(ac, bgMid) {
+  if (hiddenSections.social) return '';
+  var has = formData.linkedin || formData.instagram || formData.socialOther;
+  if (!has) return '';
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Social media', ac, bgMid);
+  if (formData.linkedin) html += renderFieldRow('LinkedIn', formData.linkedin, ac, bgMid);
+  if (formData.instagram) html += renderFieldRow('Instagram', formData.instagram, ac, bgMid);
+  if (formData.socialOther) html += renderFieldRow('Other', formData.socialOther, ac, bgMid);
+  html += '</div>';
+  return html;
 }
 
 function renderSectionTitle(title, ac, bgMid) {
@@ -1959,6 +2352,35 @@ function buildPaginatedContent() {
   return paginatedCache;
 }
 
+function renderPhotoPageCanvas(renderScale, callback) {
+  var ac = customize.accentColor;
+  var bgMid = hexToMid(ac);
+  var photoPageHTML = buildPhotoPageHTML(ac, bgMid);
+  if (!photoPageHTML) { callback(null); return; }
+
+  var container = document.getElementById('pdf-render-container');
+  container.style.display = 'block';
+  container.style.height = '842px';
+  container.style.overflow = 'hidden';
+  container.innerHTML = photoPageHTML;
+
+  setTimeout(function() {
+    html2canvas(container, {
+      scale: renderScale, useCORS: true, allowTaint: true,
+      backgroundColor: '#FFFFFF', width: 595, height: 842,
+      logging: false, scrollX: 0, scrollY: 0, x: 0, y: 0
+    }).then(function(canvas) {
+      container.innerHTML = '';
+      container.style.display = 'none';
+      callback(canvas);
+    }).catch(function() {
+      container.innerHTML = '';
+      container.style.display = 'none';
+      callback(null);
+    });
+  }, 200);
+}
+
 function renderAllPages(callback, quiet) {
   if (!quiet) document.getElementById('generating-overlay').classList.add('open');
 
@@ -2107,8 +2529,18 @@ function renderAllPagesInner(callback, quiet) {
         }
         generatedPageCanvases = pageCanvases;
         currentPageCount = pageCount;
-        cleanup();
-        if (callback) callback(pageCanvases);
+
+        // Append photo page if enabled and has photos
+        if (!hiddenSections.photopage && extraPhotos.some(function(p) { return p !== null; }) && maxPages > 1) {
+          renderPhotoPageCanvas(renderScale, function(photoCanvas) {
+            if (photoCanvas) generatedPageCanvases.push(photoCanvas);
+            cleanup();
+            if (callback) callback(generatedPageCanvases);
+          });
+        } else {
+          cleanup();
+          if (callback) callback(pageCanvases);
+        }
       } catch(innerErr) {
         console.error('Slicing failed at scale ' + renderScale + ':', innerErr);
         if (attemptIdx < scaleAttempts.length - 1) attemptRender(attemptIdx + 1);
