@@ -474,6 +474,18 @@ textarea.field-input { resize: vertical; min-height: 60px; }
             <div class="field-label">Date of birth <button class="field-hide-btn" data-field="dob" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" type="date" data-field="dob" oninput="updatePreview()">
           </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Birth time <button class="field-hide-btn" data-field="birthTime" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" type="time" data-field="birthTime" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Birth place <button class="field-hide-btn" data-field="birthPlace" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" data-field="birthPlace" placeholder="e.g. Mumbai" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
           <div class="field-group">
             <div class="field-label">Height <button class="field-hide-btn" data-field="height" onclick="toggleField(this)">Hide</button></div>
             <select class="field-input" data-field="height" oninput="updatePreview()">
@@ -504,16 +516,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
                   <option>6'5"</option>
                   <option>6'6"</option>
             </select>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">Birth time <button class="field-hide-btn" data-field="birthTime" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" type="time" data-field="birthTime" oninput="updatePreview()">
-          </div>
-          <div class="field-group">
-            <div class="field-label">Birth place <button class="field-hide-btn" data-field="birthPlace" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="birthPlace" placeholder="e.g. Mumbai" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
@@ -774,6 +776,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
           Horoscope
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle on" data-section="horoscope" onclick="toggleSection(event, this)"></button>
@@ -1217,7 +1220,7 @@ function init() {
 }
 
 // Sections that are only available in multi-page mode
-var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage'];
+var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage', 'sec-horoscope'];
 
 function applyMultipageRestrictions() {
   var isSingle = maxPages === 1;
@@ -1485,7 +1488,7 @@ function renderFatherSiblingsList() {
     entry.innerHTML =
       '<div class="field-group"><div class="field-label">Relation</div><input class="field-input" value="' + s.relation + '" placeholder="e.g. Uncle" oninput="fatherSiblings[' + i + '].relation=this.value;scheduleRealPreview()"></div>' +
       '<div class="field-group"><div class="field-label">Name</div><input class="field-input" value="' + s.name + '" placeholder="Name" oninput="fatherSiblings[' + i + '].name=this.value;scheduleRealPreview()"></div>' +
-      '<div class="field-group" id="fs-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession <button class="field-hide-btn" onclick="toggleFatherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="Profession" oninput="fatherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="fs-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession / Education <button class="field-hide-btn" onclick="toggleFatherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="e.g. CA / MBA" oninput="fatherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
       '<div class="field-group" id="fs-loc-group-' + i + '" style="' + (s.hideLocation ? 'display:none' : '') + '"><div class="field-label">Location <button class="field-hide-btn" onclick="toggleFatherSiblingField(' + i + ',\'hideLocation\')">Hide</button></div><input class="field-input" value="' + s.location + '" placeholder="City" oninput="fatherSiblings[' + i + '].location=this.value;scheduleRealPreview()"></div>' +
       '<button class="sibling-remove" onclick="removeFatherSibling(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
     list.appendChild(entry);
@@ -1518,7 +1521,7 @@ function renderMotherSiblingsList() {
     entry.innerHTML =
       '<div class="field-group"><div class="field-label">Relation</div><input class="field-input" value="' + s.relation + '" placeholder="e.g. Uncle" oninput="motherSiblings[' + i + '].relation=this.value;scheduleRealPreview()"></div>' +
       '<div class="field-group"><div class="field-label">Name</div><input class="field-input" value="' + s.name + '" placeholder="Name" oninput="motherSiblings[' + i + '].name=this.value;scheduleRealPreview()"></div>' +
-      '<div class="field-group" id="ms-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession <button class="field-hide-btn" onclick="toggleMotherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="Profession" oninput="motherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="ms-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession / Education <button class="field-hide-btn" onclick="toggleMotherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="e.g. CA / MBA" oninput="motherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
       '<div class="field-group" id="ms-loc-group-' + i + '" style="' + (s.hideLocation ? 'display:none' : '') + '"><div class="field-label">Location <button class="field-hide-btn" onclick="toggleMotherSiblingField(' + i + ',\'hideLocation\')">Hide</button></div><input class="field-input" value="' + s.location + '" placeholder="City" oninput="motherSiblings[' + i + '].location=this.value;scheduleRealPreview()"></div>' +
       '<button class="sibling-remove" onclick="removeMotherSibling(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
     list.appendChild(entry);
@@ -1551,7 +1554,7 @@ function renderSiblings() {
     entry.innerHTML =
       '<div class="field-group"><div class="field-label">Name</div><input class="field-input" value="' + sib.name + '" placeholder="Name" oninput="siblings[' + i + '].name=this.value;updatePreview()"></div>' +
       '<div class="field-group"><div class="field-label">Relation</div><input class="field-input" value="' + sib.relation + '" placeholder="e.g. Elder Brother" oninput="siblings[' + i + '].relation=this.value;updatePreview()"></div>' +
-      '<div class="field-group"><div class="field-label">Occupation</div><input class="field-input" value="' + sib.occupation + '" placeholder="Occupation" oninput="siblings[' + i + '].occupation=this.value;updatePreview()"></div>' +
+      '<div class="field-group"><div class="field-label">Profession / Education</div><input class="field-input" value="' + sib.occupation + '" placeholder="e.g. CA / MBA" oninput="siblings[' + i + '].occupation=this.value;updatePreview()"></div>' +
       '<button class="sibling-remove" onclick="removeSibling(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
     list.appendChild(entry);
   });
