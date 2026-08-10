@@ -410,6 +410,28 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
+    <!-- ABOUT ME (optional, multi-page preferred) -->
+    <div class="form-card" id="sec-aboutme">
+      <div class="form-card-header" onclick="toggleCollapse('sec-aboutme')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          About me
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="aboutme" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/400</span></div>
+            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PERSONAL DETAILS -->
     <div class="form-card" id="sec-personal">
       <div class="form-card-header" onclick="toggleCollapse('sec-personal')">
@@ -631,65 +653,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
-    <!-- HOROSCOPE (optional) -->
-    <div class="form-card" id="sec-horoscope">
-      <div class="form-card-header" onclick="toggleCollapse('sec-horoscope')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-          Horoscope
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle on" data-section="horoscope" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">Rashi</div>
-            <input class="field-input" data-field="rashi" placeholder="e.g. Meena" oninput="updatePreview()">
-          </div>
-          <div class="field-group">
-            <div class="field-label">Nakshatra</div>
-            <input class="field-input" data-field="nakshatra" placeholder="e.g. Revati" oninput="updatePreview()">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">Manglik status</div>
-            <select class="field-input" data-field="manglik" oninput="updatePreview()">
-              <option value="">Select</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-              <option value="Partial">Partial</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABOUT ME (optional, multi-page preferred) -->
-    <div class="form-card" id="sec-aboutme">
-      <div class="form-card-header" onclick="toggleCollapse('sec-aboutme')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          About me
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle" data-section="aboutme" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group full">
-            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/400</span></div>
-            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- PATERNAL FAMILY (optional, multi-page) -->
     <div class="form-card" id="sec-paternal">
       <div class="form-card-header" onclick="toggleCollapse('sec-paternal')">
@@ -774,6 +737,43 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
+    <!-- HOROSCOPE (optional) -->
+    <div class="form-card" id="sec-horoscope">
+      <div class="form-card-header" onclick="toggleCollapse('sec-horoscope')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          Horoscope
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle on" data-section="horoscope" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Rashi</div>
+            <input class="field-input" data-field="rashi" placeholder="e.g. Meena" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Nakshatra</div>
+            <input class="field-input" data-field="nakshatra" placeholder="e.g. Revati" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Manglik status</div>
+            <select class="field-input" data-field="manglik" oninput="updatePreview()">
+              <option value="">Select</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+              <option value="Partial">Partial</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PARTNER PREFERENCES (optional) -->
     <div class="form-card" id="sec-preferences">
       <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
@@ -791,6 +791,38 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           <div class="field-group full">
             <div class="field-label">Describe your ideal partner</div>
             <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." oninput="updatePreview()"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL MEDIA (optional) -->
+    <div class="form-card" id="sec-social">
+      <div class="form-card-header" onclick="toggleCollapse('sec-social')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Social media
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="social" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">LinkedIn <button class="field-hide-btn" data-field="linkedin" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" data-field="linkedin" placeholder="linkedin.com/in/username" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Instagram <button class="field-hide-btn" data-field="instagram" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" data-field="instagram" placeholder="@username" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Other <button class="field-hide-btn" data-field="socialOther" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
           </div>
         </div>
       </div>
@@ -885,38 +917,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
             <input type="file" accept="image/*" class="extra-photo-input" data-slot="3" onchange="handleExtraPhoto(this)" style="display:none">
             <button class="extra-photo-btn" onclick="this.previousElementSibling.click()">Choose</button>
             <button class="extra-photo-remove" onclick="removeExtraPhoto(3)" style="display:none">Remove</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SOCIAL MEDIA (optional) -->
-    <div class="form-card" id="sec-social">
-      <div class="form-card-header" onclick="toggleCollapse('sec-social')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Social media
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle" data-section="social" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">LinkedIn <button class="field-hide-btn" data-field="linkedin" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="linkedin" placeholder="linkedin.com/in/username" oninput="updatePreview()">
-          </div>
-          <div class="field-group">
-            <div class="field-label">Instagram <button class="field-hide-btn" data-field="instagram" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="instagram" placeholder="@username" oninput="updatePreview()">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group full">
-            <div class="field-label">Other <button class="field-hide-btn" data-field="socialOther" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
           </div>
         </div>
       </div>
@@ -1224,6 +1224,11 @@ function renderTemplateSwitcher() {
     // Convert id to readable name: 'kalash-ornate' → 'Kalash'
     label.textContent = id.split('-')[0].charAt(0).toUpperCase() + id.split('-')[0].slice(1);
     btn.appendChild(label);
+    // Price badge
+    var price = document.createElement('div');
+    price.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(139,26,58,0.85);color:#fff;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;';
+    price.textContent = '₹99';
+    btn.appendChild(price);
     btn.onclick = function() { switchTemplate(id); };
     btn.title = id.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
     el.appendChild(btn);
@@ -1793,18 +1798,13 @@ function buildPhotoPageHTML(ac, bgMid) {
 
   var html = '<div style="position:relative;width:595px;min-height:842px;">';
   html += '<div style="position:absolute;inset:0;' + bgStyle + '"></div>';
-  html += '<div style="position:relative;z-index:1;padding:40px;box-sizing:border-box;font-family:Lato,sans-serif;">';
-
-  // Page title
-  var isCursive = ['Dancing Script'].indexOf(customize.displayFont) >= 0;
-  html += '<div style="text-align:center;font-family:\'' + customize.displayFont + '\',serif;font-size:20px;font-weight:600;color:' + ac + ';margin-bottom:24px;text-transform:' + (isCursive ? 'none' : 'uppercase') + ';letter-spacing:' + (isCursive ? '0.5px' : '2px') + '">' + (isCursive ? 'More Photos' : 'MORE PHOTOS') + '</div>';
+  html += '<div style="position:relative;z-index:1;padding:20px;box-sizing:border-box;font-family:Lato,sans-serif;">';
 
   // Photo grid
   var count = activePhotos.length;
-  var cols = count === 1 ? 1 : 2;
-  var photoW = count === 1 ? '360px' : '230px';
-  var photoH = count === 1 ? '480px' : '300px';
-  var gridStyle = 'display:flex;flex-wrap:wrap;gap:16px;justify-content:center;';
+  var photoW = count === 1 ? '420px' : '268px';
+  var photoH = count === 1 ? '560px' : '356px';
+  var gridStyle = 'display:flex;flex-wrap:wrap;gap:10px;justify-content:center;';
 
   html += '<div style="' + gridStyle + '">';
   activePhotos.forEach(function(src) {
