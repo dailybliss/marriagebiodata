@@ -64,6 +64,17 @@ body { font-family: var(--font-body); background: #F4F0EA; color: var(--text-dar
 .section-toggle.on { background: var(--green); }
 .section-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left var(--transition); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
 .section-toggle.on::after { left: 18px; }
+.multipage-badge {
+  font-size: 9px; font-weight: 600; color: var(--rose);
+  background: var(--rose-bg); border: 1px solid var(--rose-light);
+  padding: 2px 7px; border-radius: 10px; letter-spacing: 0.2px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.multipage-note {
+  font-size: 11px; color: var(--text-light); font-style: italic;
+  margin-bottom: 10px; padding: 6px 10px; background: var(--bg-accent);
+  border-radius: var(--radius-sm); border-left: 2px solid var(--rose-light);
+}
 /* Multi-page only sections — greyed out with lock badge when single page is active */
 .multipage-only-locked { opacity: 0.45; pointer-events: none; position: relative; }
 .multipage-only-locked::after {
@@ -425,6 +436,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           About me
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="aboutme" onclick="toggleSection(event, this)"></button>
@@ -434,7 +446,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/200</span></div>
+            <div class="field-label" style="display:flex;justify-content:space-between;align-items:center"><span>About me</span><span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/200</span></div>
             <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="200" oninput="updateCharCount('aboutMe','aboutme-count',200);updatePreview()" style="min-height:80px"></textarea>
           </div>
         </div>
@@ -668,6 +680,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Paternal family
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="paternal" onclick="toggleSection(event, this)"></button>
@@ -697,8 +710,12 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         </div>
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Father's siblings <button class="field-hide-btn" data-field="fatherSiblings" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="fatherSiblings" placeholder="e.g. Two uncles (CA, Doctor), One aunt (Homemaker)" oninput="updatePreview()">
+            <div class="field-label">Father's siblings</div>
+            <div id="father-siblings-list"></div>
+            <button class="add-sibling-btn" onclick="addFatherSibling()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add
+            </button>
           </div>
         </div>
       </div>
@@ -710,6 +727,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Maternal family
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="maternal" onclick="toggleSection(event, this)"></button>
@@ -739,8 +757,12 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         </div>
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Mother's siblings <button class="field-hide-btn" data-field="motherSiblings" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="motherSiblings" placeholder="e.g. Two maternal uncles (Business), One maternal aunt" oninput="updatePreview()">
+            <div class="field-label">Mother's siblings</div>
+            <div id="mother-siblings-list"></div>
+            <button class="add-sibling-btn" onclick="addMotherSibling()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add
+            </button>
           </div>
         </div>
       </div>
@@ -761,17 +783,17 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Rashi</div>
+            <div class="field-label">Rashi <button class="field-hide-btn" data-field="rashi" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="rashi" placeholder="e.g. Meena" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">Nakshatra</div>
+            <div class="field-label">Nakshatra <button class="field-hide-btn" data-field="nakshatra" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="nakshatra" placeholder="e.g. Revati" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Manglik status</div>
+            <div class="field-label">Manglik status <button class="field-hide-btn" data-field="manglik" onclick="toggleField(this)">Hide</button></div>
             <select class="field-input" data-field="manglik" oninput="updatePreview()">
               <option value="">Select</option>
               <option value="Yes">Yes</option>
@@ -789,6 +811,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           Partner preferences
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle on" data-section="preferences" onclick="toggleSection(event, this)"></button>
@@ -798,7 +821,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Describe your ideal partner <span style="font-size:10px;color:var(--text-light)" id="prefs-count">0/200</span></div>
+            <div class="field-label" style="display:flex;justify-content:space-between;align-items:center"><span>Describe your ideal partner</span><span style="font-size:10px;color:var(--text-light)" id="prefs-count">0/200</span></div>
             <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." maxlength="200" oninput="updateCharCount('partnerPrefs','prefs-count',200);updatePreview()"></textarea>
           </div>
         </div>
@@ -811,6 +834,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Social media
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="social" onclick="toggleSection(event, this)"></button>
@@ -882,6 +906,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
           Photo page
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="photopage" onclick="toggleSection(event, this)"></button>
@@ -1094,14 +1119,16 @@ var formData = {
   familyType: '', nativePlace: '', rashi: '', nakshatra: '', manglik: '', partnerPrefs: '',
   contactPerson: '', contactRelation: '', phone: '', email: '', address: '',
   aboutMe: '',
-  paternalGrandfather: '', paternalGrandfatherOcc: '', paternalGrandmother: '', paternalNative: '', fatherSiblings: '',
-  maternalGrandfather: '', maternalGrandfatherOcc: '', maternalGrandmother: '', maternalNative: '', motherSiblings: '',
+  paternalGrandfather: '', paternalGrandfatherOcc: '', paternalGrandmother: '', paternalNative: '',
+  maternalGrandfather: '', maternalGrandfatherOcc: '', maternalGrandmother: '', maternalNative: '',
   linkedin: '', instagram: '', socialOther: ''
 };
 
 var hiddenFields = {};
 var hiddenSections = {};
 var siblings = [];
+var fatherSiblings = [];
+var motherSiblings = [];
 var photoData = null;
 
 var customize = {
@@ -1183,8 +1210,10 @@ function init() {
   renderTemplateSwitcher();
   syncSinglePageToggle();
   updateRectangleAvailability();
+  renderFatherSiblingsList();
+  renderMotherSiblingsList();
   readForm();
-  renderRealPreview(); // render the real file immediately on load
+  renderRealPreview();
 }
 
 // Sections that are only available in multi-page mode
@@ -1435,6 +1464,73 @@ function handlePhotoUpload(e) {
 }
 
 // ===== SIBLINGS =====
+// ===== FATHER / MOTHER SIBLING REPEATERS =====
+function addFatherSibling() {
+  fatherSiblings.push({ relation: '', name: '', occupation: '', location: '' });
+  renderFatherSiblingsList();
+  scheduleRealPreview();
+}
+function removeFatherSibling(idx) {
+  fatherSiblings.splice(idx, 1);
+  renderFatherSiblingsList();
+  scheduleRealPreview();
+}
+function renderFatherSiblingsList() {
+  var list = document.getElementById('father-siblings-list');
+  if (!list) return;
+  list.innerHTML = '';
+  fatherSiblings.forEach(function(s, i) {
+    var entry = document.createElement('div');
+    entry.className = 'sibling-entry';
+    entry.innerHTML =
+      '<div class="field-group"><div class="field-label">Relation</div><input class="field-input" value="' + s.relation + '" placeholder="e.g. Uncle" oninput="fatherSiblings[' + i + '].relation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group"><div class="field-label">Name</div><input class="field-input" value="' + s.name + '" placeholder="Name" oninput="fatherSiblings[' + i + '].name=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="fs-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession <button class="field-hide-btn" onclick="toggleFatherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="Profession" oninput="fatherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="fs-loc-group-' + i + '" style="' + (s.hideLocation ? 'display:none' : '') + '"><div class="field-label">Location <button class="field-hide-btn" onclick="toggleFatherSiblingField(' + i + ',\'hideLocation\')">Hide</button></div><input class="field-input" value="' + s.location + '" placeholder="City" oninput="fatherSiblings[' + i + '].location=this.value;scheduleRealPreview()"></div>' +
+      '<button class="sibling-remove" onclick="removeFatherSibling(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+    list.appendChild(entry);
+  });
+}
+
+function toggleFatherSiblingField(idx, field) {
+  fatherSiblings[idx][field] = !fatherSiblings[idx][field];
+  renderFatherSiblingsList();
+  scheduleRealPreview();
+}
+
+function addMotherSibling() {
+  motherSiblings.push({ relation: '', name: '', occupation: '', location: '' });
+  renderMotherSiblingsList();
+  scheduleRealPreview();
+}
+function removeMotherSibling(idx) {
+  motherSiblings.splice(idx, 1);
+  renderMotherSiblingsList();
+  scheduleRealPreview();
+}
+function renderMotherSiblingsList() {
+  var list = document.getElementById('mother-siblings-list');
+  if (!list) return;
+  list.innerHTML = '';
+  motherSiblings.forEach(function(s, i) {
+    var entry = document.createElement('div');
+    entry.className = 'sibling-entry';
+    entry.innerHTML =
+      '<div class="field-group"><div class="field-label">Relation</div><input class="field-input" value="' + s.relation + '" placeholder="e.g. Uncle" oninput="motherSiblings[' + i + '].relation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group"><div class="field-label">Name</div><input class="field-input" value="' + s.name + '" placeholder="Name" oninput="motherSiblings[' + i + '].name=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="ms-occ-group-' + i + '" style="' + (s.hideOccupation ? 'display:none' : '') + '"><div class="field-label">Profession <button class="field-hide-btn" onclick="toggleMotherSiblingField(' + i + ',\'hideOccupation\')">Hide</button></div><input class="field-input" value="' + s.occupation + '" placeholder="Profession" oninput="motherSiblings[' + i + '].occupation=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group" id="ms-loc-group-' + i + '" style="' + (s.hideLocation ? 'display:none' : '') + '"><div class="field-label">Location <button class="field-hide-btn" onclick="toggleMotherSiblingField(' + i + ',\'hideLocation\')">Hide</button></div><input class="field-input" value="' + s.location + '" placeholder="City" oninput="motherSiblings[' + i + '].location=this.value;scheduleRealPreview()"></div>' +
+      '<button class="sibling-remove" onclick="removeMotherSibling(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+    list.appendChild(entry);
+  });
+}
+
+function toggleMotherSiblingField(idx, field) {
+  motherSiblings[idx][field] = !motherSiblings[idx][field];
+  renderMotherSiblingsList();
+  scheduleRealPreview();
+}
+
 function addSibling() {
   siblings.push({ name: '', relation: '', occupation: '', maritalStatus: '' });
   renderSiblings();
@@ -1881,7 +1977,7 @@ function renderAboutMeFields(ac, bgMid) {
 
 function renderPaternalFamilyFields(ac, bgMid) {
   if (hiddenSections.paternal) return '';
-  var has = formData.paternalGrandfather || formData.paternalGrandmother || formData.paternalNative || formData.fatherSiblings;
+  var has = formData.paternalGrandfather || formData.paternalGrandmother || formData.paternalNative || fatherSiblings.length;
   if (!has) return '';
   var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Paternal family', ac, bgMid);
   if (formData.paternalGrandfather) {
@@ -1890,14 +1986,21 @@ function renderPaternalFamilyFields(ac, bgMid) {
   }
   if (formData.paternalGrandmother) html += renderFieldRow('Paternal grandmother', formData.paternalGrandmother, ac, bgMid);
   if (formData.paternalNative) html += renderFieldRow('Native place', formData.paternalNative, ac, bgMid);
-  if (formData.fatherSiblings) html += renderFieldRow("Father's siblings", formData.fatherSiblings, ac, bgMid);
+  fatherSiblings.forEach(function(s) {
+    if (s.name || s.relation) {
+      var val = (s.relation || '') + (s.name ? (s.relation ? ' ' : '') + s.name : '');
+      if (!s.hideOccupation && s.occupation) val += ' — ' + s.occupation;
+      if (!s.hideLocation && s.location) val += ', ' + s.location;
+      html += renderFieldRow("Father's sibling", val.trim(), ac, bgMid);
+    }
+  });
   html += '</div>';
   return html;
 }
 
 function renderMaternalFamilyFields(ac, bgMid) {
   if (hiddenSections.maternal) return '';
-  var has = formData.maternalGrandfather || formData.maternalGrandmother || formData.maternalNative || formData.motherSiblings;
+  var has = formData.maternalGrandfather || formData.maternalGrandmother || formData.maternalNative || motherSiblings.length;
   if (!has) return '';
   var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Maternal family', ac, bgMid);
   if (formData.maternalGrandfather) {
@@ -1906,7 +2009,14 @@ function renderMaternalFamilyFields(ac, bgMid) {
   }
   if (formData.maternalGrandmother) html += renderFieldRow('Maternal grandmother', formData.maternalGrandmother, ac, bgMid);
   if (formData.maternalNative) html += renderFieldRow('Maternal native', formData.maternalNative, ac, bgMid);
-  if (formData.motherSiblings) html += renderFieldRow("Mother's siblings", formData.motherSiblings, ac, bgMid);
+  motherSiblings.forEach(function(s) {
+    if (s.name || s.relation) {
+      var val = (s.relation || '') + (s.name ? (s.relation ? ' ' : '') + s.name : '');
+      if (!s.hideOccupation && s.occupation) val += ' — ' + s.occupation;
+      if (!s.hideLocation && s.location) val += ', ' + s.location;
+      html += renderFieldRow("Mother's sibling", val.trim(), ac, bgMid);
+    }
+  });
   html += '</div>';
   return html;
 }
@@ -2016,9 +2126,9 @@ function renderHoroscopeFields(ac, bgMid) {
   var hasData = formData.rashi || formData.nakshatra || formData.manglik;
   if (!hasData) return '';
   var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Horoscope', ac, bgMid);
-  if (formData.rashi) html += renderFieldRow('Rashi', formData.rashi, ac, bgMid);
-  if (formData.nakshatra) html += renderFieldRow('Nakshatra', formData.nakshatra, ac, bgMid);
-  if (formData.manglik) html += renderFieldRow('Manglik', formData.manglik, ac, bgMid);
+  if (!hiddenFields.rashi && formData.rashi) html += renderFieldRow('Rashi', formData.rashi, ac, bgMid);
+  if (!hiddenFields.nakshatra && formData.nakshatra) html += renderFieldRow('Nakshatra', formData.nakshatra, ac, bgMid);
+  if (!hiddenFields.manglik && formData.manglik) html += renderFieldRow('Manglik', formData.manglik, ac, bgMid);
   html += '</div>';
   return html;
 }
