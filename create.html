@@ -1132,6 +1132,8 @@ var hiddenSections = {};
 var siblings = [];
 var fatherSiblings = [];
 var motherSiblings = [];
+var incomeRangeActive = false;
+var incomeRangeValue = '';
 var photoData = null;
 
 var customize = {
@@ -1563,8 +1565,13 @@ function renderSiblings() {
 // ===== READ FORM =====
 function readForm() {
   document.querySelectorAll('.field-input[data-field]').forEach(function(input) {
+    // Never let readForm overwrite income when range mode is active —
+    // incomeRangeValue is the source of truth in that case.
+    if (input.dataset.field === 'income' && incomeRangeActive) return;
     formData[input.dataset.field] = input.value;
   });
+  // When range is active, always use incomeRangeValue
+  if (incomeRangeActive) formData.income = incomeRangeValue;
 }
 
 // ===== PREVIEW RENDERING =====
@@ -1951,15 +1958,24 @@ function buildPhotoPageHTML(ac, bgMid) {
 }
 
 function toggleIncomeRange(cb) {
-  document.getElementById('income-exact').style.display = cb.checked ? 'none' : 'block';
-  document.getElementById('income-range').style.display = cb.checked ? 'block' : 'none';
-  updateIncomeRange();
+  incomeRangeActive = cb.checked;
+  document.getElementById('income-exact').style.display = incomeRangeActive ? 'none' : 'block';
+  document.getElementById('income-range').style.display = incomeRangeActive ? 'block' : 'none';
+  if (!incomeRangeActive) {
+    // Switching back to exact — restore the text input value
+    incomeRangeValue = '';
+    var exactInput = document.querySelector('[data-field="income"]');
+    if (exactInput) formData.income = exactInput.value;
+  } else {
+    updateIncomeRange();
+  }
 }
 
 function updateIncomeRange() {
   var from = document.getElementById('income-from');
   if (!from) return;
-  formData.income = from.value || '';
+  incomeRangeValue = from.value || '';
+  formData.income = incomeRangeValue;
   scheduleRealPreview();
 }
 
@@ -2829,7 +2845,12 @@ function autoSave() {
   saveTimer = setTimeout(function() {
     readForm();
     try {
-      var saveData = { formData: formData, siblings: siblings, hiddenFields: hiddenFields, hiddenSections: hiddenSections, customize: customize, photoData: photoData };
+      var saveData = {
+        formData: formData, siblings: siblings,
+        hiddenFields: hiddenFields, hiddenSections: hiddenSections,
+        customize: customize, photoData: photoData,
+        incomeRangeActive: incomeRangeActive, incomeRangeValue: incomeRangeValue
+      };
       localStorage.setItem('biodata_autosave', JSON.stringify(saveData));
     } catch(e) {}
   }, 500);
@@ -2846,6 +2867,20 @@ function loadAutoSave() {
         var input = document.querySelector('.field-input[data-field="' + key + '"]');
         if (input) input.value = formData[key] || '';
       });
+    }
+    // Restore income range state
+    if (data.incomeRangeActive) {
+      incomeRangeActive = true;
+      incomeRangeValue = data.incomeRangeValue || '';
+      formData.income = incomeRangeValue;
+      var toggle = document.getElementById('income-range-toggle');
+      if (toggle) toggle.checked = true;
+      var exact = document.getElementById('income-exact');
+      var range = document.getElementById('income-range');
+      var from = document.getElementById('income-from');
+      if (exact) exact.style.display = 'none';
+      if (range) range.style.display = 'block';
+      if (from) from.value = incomeRangeValue;
     }
     if (data.siblings) { siblings = data.siblings; renderSiblings(); }
     if (data.hiddenFields) { hiddenFields = data.hiddenFields; }
