@@ -433,7 +433,44 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           </div>
           <div class="field-group">
             <div class="field-label">Height <button class="field-hide-btn" data-field="height" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="height" placeholder="e.g. 5'6&quot;" oninput="updatePreview()">
+            <select class="field-input" data-field="height" oninput="updatePreview()">
+                  <option value="">Select height</option>
+                  <option>4'6"</option>
+                  <option>4'7"</option>
+                  <option>4'8"</option>
+                  <option>4'9"</option>
+                  <option>4'10"</option>
+                  <option>4'11"</option>
+                  <option>5'0"</option>
+                  <option>5'1"</option>
+                  <option>5'2"</option>
+                  <option>5'3"</option>
+                  <option>5'4"</option>
+                  <option>5'5"</option>
+                  <option>5'6"</option>
+                  <option>5'7"</option>
+                  <option>5'8"</option>
+                  <option>5'9"</option>
+                  <option>5'10"</option>
+                  <option>5'11"</option>
+                  <option>6'0"</option>
+                  <option>6'1"</option>
+                  <option>6'2"</option>
+                  <option>6'3"</option>
+                  <option>6'4"</option>
+                  <option>6'5"</option>
+                  <option>6'6"</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">Birth time <button class="field-hide-btn" data-field="birthTime" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" type="time" data-field="birthTime" oninput="updatePreview()">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Birth place <button class="field-hide-btn" data-field="birthPlace" onclick="toggleField(this)">Hide</button></div>
+            <input class="field-input" data-field="birthPlace" placeholder="e.g. Mumbai" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
@@ -522,34 +559,19 @@ textarea.field-input { resize: vertical; min-height: 60px; }
               <input class="field-input" data-field="income" placeholder="e.g. 25 LPA" oninput="updatePreview()">
             </div>
             <div id="income-range" style="display:none">
-              <div style="display:flex;gap:8px;align-items:center">
-                <select class="field-input" id="income-from" onchange="updateIncomeRange()" style="flex:1">
-                  <option value="">From</option>
-                  <option>Below ₹3 LPA</option>
-                  <option>₹3–5 LPA</option>
-                  <option>₹5–8 LPA</option>
-                  <option>₹8–12 LPA</option>
-                  <option>₹12–18 LPA</option>
-                  <option>₹18–25 LPA</option>
-                  <option>₹25–40 LPA</option>
-                  <option>₹40–60 LPA</option>
-                  <option>₹60–100 LPA</option>
-                  <option>Above ₹100 LPA</option>
-                </select>
-                <span style="font-size:12px;color:var(--text-light)">to</span>
-                <select class="field-input" id="income-to" onchange="updateIncomeRange()" style="flex:1">
-                  <option value="">To</option>
-                  <option>₹3–5 LPA</option>
-                  <option>₹5–8 LPA</option>
-                  <option>₹8–12 LPA</option>
-                  <option>₹12–18 LPA</option>
-                  <option>₹18–25 LPA</option>
-                  <option>₹25–40 LPA</option>
-                  <option>₹40–60 LPA</option>
-                  <option>₹60–100 LPA</option>
-                  <option>Above ₹100 LPA</option>
-                </select>
-              </div>
+              <select class="field-input" id="income-from" onchange="updateIncomeRange()">
+                <option value="">Select range</option>
+                <option>Below ₹3 LPA</option>
+                <option>₹3–5 LPA</option>
+                <option>₹5–8 LPA</option>
+                <option>₹8–12 LPA</option>
+                <option>₹12–18 LPA</option>
+                <option>₹18–25 LPA</option>
+                <option>₹25–40 LPA</option>
+                <option>₹40–60 LPA</option>
+                <option>₹60–100 LPA</option>
+                <option>Above ₹100 LPA</option>
+              </select>
             </div>
           </div>
         </div>
@@ -662,7 +684,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="field-row">
           <div class="field-group full">
             <div class="field-label">A short note about yourself <span style="font-size:10px;color:var(--text-light)" id="aboutme-count">0/400</span></div>
-            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about your personality, values, lifestyle and what makes you, you..." maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
+            <textarea class="field-input" data-field="aboutMe" placeholder="Share a little about yourself" maxlength="400" oninput="updateCharCount('aboutMe','aboutme-count',400);updatePreview()" style="min-height:80px"></textarea>
           </div>
         </div>
       </div>
@@ -683,27 +705,27 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Paternal grandfather</div>
+            <div class="field-label">Paternal grandfather <button class="field-hide-btn" data-field="paternalGrandfather" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="paternalGrandfather" placeholder="Name" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">His occupation</div>
+            <div class="field-label">His occupation <button class="field-hide-btn" data-field="paternalGrandfatherOcc" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="paternalGrandfatherOcc" placeholder="e.g. Retired IAS Officer" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Paternal grandmother</div>
+            <div class="field-label">Paternal grandmother <button class="field-hide-btn" data-field="paternalGrandmother" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="paternalGrandmother" placeholder="Name" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">Native place</div>
+            <div class="field-label">Native place <button class="field-hide-btn" data-field="paternalNative" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="paternalNative" placeholder="e.g. Varanasi, UP" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Father's siblings</div>
+            <div class="field-label">Father's siblings <button class="field-hide-btn" data-field="fatherSiblings" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="fatherSiblings" placeholder="e.g. Two uncles (CA, Doctor), One aunt (Homemaker)" oninput="updatePreview()">
           </div>
         </div>
@@ -725,27 +747,27 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Maternal grandfather</div>
+            <div class="field-label">Maternal grandfather <button class="field-hide-btn" data-field="maternalGrandfather" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="maternalGrandfather" placeholder="Name" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">His occupation</div>
+            <div class="field-label">His occupation <button class="field-hide-btn" data-field="maternalGrandfatherOcc" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="maternalGrandfatherOcc" placeholder="e.g. Retired Professor" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">Maternal grandmother</div>
+            <div class="field-label">Maternal grandmother <button class="field-hide-btn" data-field="maternalGrandmother" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="maternalGrandmother" placeholder="Name" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">Maternal native place</div>
+            <div class="field-label">Maternal native place <button class="field-hide-btn" data-field="maternalNative" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="maternalNative" placeholder="e.g. Lucknow, UP" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Mother's siblings</div>
+            <div class="field-label">Mother's siblings <button class="field-hide-btn" data-field="motherSiblings" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="motherSiblings" placeholder="e.g. Two maternal uncles (Business), One maternal aunt" oninput="updatePreview()">
           </div>
         </div>
@@ -883,17 +905,17 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       <div class="form-card-body">
         <div class="field-row">
           <div class="field-group">
-            <div class="field-label">LinkedIn</div>
+            <div class="field-label">LinkedIn <button class="field-hide-btn" data-field="linkedin" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="linkedin" placeholder="linkedin.com/in/username" oninput="updatePreview()">
           </div>
           <div class="field-group">
-            <div class="field-label">Instagram</div>
+            <div class="field-label">Instagram <button class="field-hide-btn" data-field="instagram" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="instagram" placeholder="@username" oninput="updatePreview()">
           </div>
         </div>
         <div class="field-row">
           <div class="field-group full">
-            <div class="field-label">Other</div>
+            <div class="field-label">Other <button class="field-hide-btn" data-field="socialOther" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
           </div>
         </div>
@@ -1057,7 +1079,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 <script>
 // ===== STATE =====
 var formData = {
-  fullName: '', dob: '', height: '', religion: '', caste: '', gotra: '', complexion: '',
+  fullName: '', dob: '', birthTime: '', birthPlace: '', height: '', religion: '', caste: '', gotra: '', complexion: '',
   maritalStatus: '', diet: '', qualification: '', college: '', occupation: '', company: '',
   income: '', fatherName: '', fatherOccupation: '', motherName: '', motherOccupation: '',
   familyType: '', nativePlace: '', rashi: '', nakshatra: '', manglik: '', partnerPrefs: '',
@@ -1803,10 +1825,8 @@ function toggleIncomeRange(cb) {
 
 function updateIncomeRange() {
   var from = document.getElementById('income-from');
-  var to = document.getElementById('income-to');
-  if (!from || !to) return;
-  var f = from.value, t = to.value;
-  formData.income = (f && t) ? f + ' – ' + t : (f || t || '');
+  if (!from) return;
+  formData.income = from.value || '';
   scheduleRealPreview();
 }
 
@@ -1904,7 +1924,12 @@ function renderFieldRow(label, value, ac, bgMid) {
 function renderPersonalFields(ac, bgMid) {
   var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Personal details', ac, bgMid);
   var dob = formData.dob ? formatDate(formData.dob) : '';
-  if (!hiddenFields.dob && dob) html += renderFieldRow('Date of birth', dob, ac, bgMid);
+  if (!hiddenFields.dob && dob) {
+    var dobVal = dob;
+    if (!hiddenFields.birthTime && formData.birthTime) dobVal += ', ' + formData.birthTime;
+    html += renderFieldRow('Date of birth', dobVal, ac, bgMid);
+  }
+  if (!hiddenFields.birthPlace && formData.birthPlace) html += renderFieldRow('Birth place', formData.birthPlace, ac, bgMid);
   if (!hiddenFields.height && formData.height) html += renderFieldRow('Height', formData.height, ac, bgMid);
   if (!hiddenFields.religion && formData.religion) html += renderFieldRow('Religion', formData.religion, ac, bgMid);
   if (!hiddenFields.caste && formData.caste) html += renderFieldRow('Caste', formData.caste, ac, bgMid);
