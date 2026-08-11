@@ -341,15 +341,17 @@ body {
 }
 .tc-body { display: flex; gap: 8%; width: 100%; flex: 1; }
 .tc-photo {
-  width: 28%;
+  width: 22%;
+  max-height: 22%;
   aspect-ratio: 3/3.7;
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  align-self: flex-start;
 }
-.tc-photo svg { width: 30%; opacity: 0.5; }
+.tc-photo svg { width: 40%; opacity: 0.5; }
 .tc-fields { flex: 1; display: flex; flex-direction: column; gap: 4%; }
 .tc-line { height: clamp(4px, 1.2vw, 7px); border-radius: 3px; }
 .tc-sec { margin-top: 3%; }
@@ -940,7 +942,7 @@ body {
           <div class="step-connector"></div>
         </div>
         <div class="step-body">
-          <div class="step-title">Pick a template</div>
+          <div class="step-title">Choose a design</div>
           <div class="step-desc">Browse our curated collection of beautiful biodata designs. Choose one that matches your style.</div>
         </div>
         <div class="step-icon">
