@@ -165,20 +165,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 .extra-photo-btn:hover { border-color: var(--rose); color: var(--rose); }
 .extra-photo-remove { font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; cursor: pointer; color: var(--text-light); }
 
-/* HOBBIES PICKER */
-.hobbies-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.hobby-chip { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 20px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-mid); transition: all var(--transition); }
-.hobby-chip:hover { border-color: var(--rose); color: var(--rose); }
-.hobby-chip.selected { border-color: var(--rose); background: var(--rose-bg); color: var(--rose); }
-.hobby-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-/* IN-BIODATA HOBBY COLUMN */
-.pv-hobbies-col { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 8px; flex-shrink: 0; }
-.pv-hobby-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.pv-hobby-item svg { width: 18px; height: 18px; }
-.pv-hobby-item span { font-size: 8px; text-align: center; }
-.pv-hobbies-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 10px; }
-
 /* PREVIEW PANEL */
 .preview-container { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-soft); }
 .preview-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -973,12 +959,14 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
-    <!-- HOBBIES (optional, shown below photo) -->
+
+    <!-- HOBBIES (optional, multi-page only) -->
     <div class="form-card" id="sec-hobbies">
       <div class="form-card-header" onclick="toggleCollapse('sec-hobbies')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Hobbies
+          <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
           <button class="section-toggle" data-section="hobbies" onclick="toggleSection(event, this)"></button>
@@ -986,8 +974,12 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         </div>
       </div>
       <div class="form-card-body">
-        <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Shown as icons below or beside your photo. Select up to 6.</div>
-        <div class="hobbies-grid" id="hobbies-picker"></div>
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Hobbies &amp; interests</div>
+            <input class="field-input" data-field="hobbies" placeholder="e.g. Reading, Cooking, Travel, Music, Yoga" oninput="updatePreview()">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1156,7 +1148,8 @@ var formData = {
   aboutMe: '',
   paternalGrandfather: '', paternalGrandfatherOcc: '', paternalGrandmother: '', paternalNative: '',
   maternalGrandfather: '', maternalGrandfatherOcc: '', maternalGrandmother: '', maternalNative: '',
-  linkedin: '', instagram: '', socialOther: ''
+  linkedin: '', instagram: '', socialOther: '',
+  hobbies: ''
 };
 
 var hiddenFields = {};
@@ -1249,13 +1242,12 @@ function init() {
   updateRectangleAvailability();
   renderFatherSiblingsList();
   renderMotherSiblingsList();
-  renderHobbiesPicker();
   readForm();
   renderRealPreview();
 }
 
 // Sections that are only available in multi-page mode
-var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage', 'sec-horoscope'];
+var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage', 'sec-horoscope', 'sec-hobbies'];
 
 function applyMultipageRestrictions() {
   var isSingle = maxPages === 1;
@@ -1569,76 +1561,6 @@ function toggleMotherSiblingField(idx, field) {
   scheduleRealPreview();
 }
 
-// ===== HOBBIES =====
-var selectedHobbies = [];
-var MAX_HOBBIES = 6;
-
-var HOBBY_LIST = [
-  { id: 'music',       label: 'Music',       svg: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' },
-  { id: 'reading',     label: 'Reading',     svg: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>' },
-  { id: 'travel',      label: 'Travel',      svg: '<path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>' },
-  { id: 'cooking',     label: 'Cooking',     svg: '<path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/>' },
-  { id: 'sports',      label: 'Sports',      svg: '<circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l4.24 4.24"/><path d="M14.83 9.17l4.24-4.24"/><path d="M14.83 14.83l4.24 4.24"/><path d="M9.17 14.83l-4.24 4.24"/><circle cx="12" cy="12" r="4"/>' },
-  { id: 'art',         label: 'Art',         svg: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>' },
-  { id: 'dance',       label: 'Dance',       svg: '<circle cx="12" cy="3" r="1.5"/><path d="M9 8l-2 7 5-2 5 2-2-7"/><path d="M7 15l-2 6"/><path d="M17 15l2 6"/><path d="M9 8l-1-4"/><path d="M15 8l1-4"/>' },
-  { id: 'fitness',     label: 'Fitness',     svg: '<path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 8H2"/><path d="M6 16H2"/><path d="M18 8h4"/><path d="M18 16h4"/><path d="M6 12h12"/>' },
-  { id: 'photography', label: 'Photo',       svg: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>' },
-  { id: 'gardening',   label: 'Garden',      svg: '<path d="M12 22V12"/><path d="M12 12C12 7 8 3 4 3s0 9 8 9"/><path d="M12 12c0-5 4-9 8-9s0 9-8 9"/>' },
-  { id: 'writing',     label: 'Writing',     svg: '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>' },
-  { id: 'gaming',      label: 'Gaming',      svg: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M8 10v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
-  { id: 'yoga',        label: 'Yoga',        svg: '<circle cx="12" cy="3" r="1.5"/><path d="M12 5v5"/><path d="M5 9c2 0 4 1 7 1s5-1 7-1"/><path d="M7 22l2-8"/><path d="M17 22l-2-8"/><path d="M10 14l2 1 2-1"/>' },
-  { id: 'movies',      label: 'Movies',      svg: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>' },
-  { id: 'meditation',  label: 'Meditate',    svg: '<path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M4 22c0-4.42 3.58-8 8-8s8 3.58 8 8"/>' },
-  { id: 'volunteering',label: 'Volunteer',   svg: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>' },
-];
-
-function renderHobbiesPicker() {
-  var picker = document.getElementById('hobbies-picker');
-  if (!picker) return;
-  picker.innerHTML = '';
-  HOBBY_LIST.forEach(function(h) {
-    var chip = document.createElement('button');
-    chip.className = 'hobby-chip' + (selectedHobbies.indexOf(h.id) >= 0 ? ' selected' : '');
-    chip.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' + h.svg + '</svg>' + h.label;
-    chip.onclick = function() { toggleHobby(h.id); };
-    picker.appendChild(chip);
-  });
-}
-
-function toggleHobby(id) {
-  var idx = selectedHobbies.indexOf(id);
-  if (idx >= 0) {
-    selectedHobbies.splice(idx, 1);
-  } else {
-    if (selectedHobbies.length >= MAX_HOBBIES) return; // max 6
-    selectedHobbies.push(id);
-  }
-  renderHobbiesPicker();
-  scheduleRealPreview();
-}
-
-function renderHobbiesGrid(ac, forExport, vertical) {
-  // vertical=true: 2-col grid flowing downward (for side column)
-  // vertical=false: wrap row (for center layout - not used currently)
-  if (!selectedHobbies.length) return '';
-  var sz = forExport ? '16px' : '13px';
-  var ls = forExport ? '8px' : '6.5px';
-  var cellGap = forExport ? '8px' : '5px';
-  var gridGap = forExport ? '10px' : '7px';
-
-  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:' + gridGap + ';justify-items:center;">';
-  selectedHobbies.forEach(function(id) {
-    var h = HOBBY_LIST.find(function(h) { return h.id === id; });
-    if (!h) return;
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:' + cellGap + ';">';
-    html += '<svg viewBox="0 0 24 24" fill="none" stroke="' + ac + '" stroke-width="1.5" style="width:' + sz + ';height:' + sz + '">' + h.svg + '</svg>';
-    html += '<span style="font-size:' + ls + ';color:' + ac + ';text-align:center;font-family:Lato,sans-serif;line-height:1.2">' + h.label + '</span>';
-    html += '</div>';
-  });
-  html += '</div>';
-  return html;
-}
-
 function addSibling() {
   siblings.push({ name: '', relation: '', occupation: '', maritalStatus: '' });
   renderSiblings();
@@ -1909,77 +1831,11 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
   }
 
   // Body layout
-  var forExport = !!window._forExport;
   var photoOnRight = customize.photoPosition === 'right';
   var photoOnCenter = customize.photoPosition === 'center';
-  var hasHobbies = !hiddenSections.hobbies && selectedHobbies.length > 0;
 
   if (photoOnCenter) {
     html += renderPhoto(ac, bgMid, photoW, photoShape, 'margin:0 auto 3%');
-    html += '<div class="pv-details">';
-
-    if (hasHobbies) {
-      // Hobbies as a narrow column on the right side of the details section
-      var sz = forExport ? '18px' : '14px';
-      var ls = forExport ? '9px' : '7px';
-      var gap = forExport ? '12px' : '8px';
-      var dividerColor = hexToMid(ac) + '88';
-      var colW = forExport ? '90px' : '66px';
-      var spacerW = forExport ? '100px' : '70px';
-
-      html += '<div style="display:flex;gap:0;align-items:flex-start;">';
-      // Details (main content)
-      html += '<div style="flex:1;min-width:0;">';
-      html += renderAboutMeFields(ac, bgMid);
-      html += renderPersonalFields(ac, bgMid);
-      html += renderEducationFields(ac, bgMid);
-      html += renderFamilyFields(ac, bgMid);
-      html += renderPaternalFamilyFields(ac, bgMid);
-      html += renderMaternalFamilyFields(ac, bgMid);
-      if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
-      if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
-      html += renderSocialFields(ac, bgMid);
-      html += renderContactFields(ac, bgMid);
-      html += '</div>';
-      // Spacer with divider line
-      html += '<div style="width:' + spacerW + ';flex-shrink:0;display:flex;justify-content:center;">';
-      html += '<div style="width:0.5px;background:' + dividerColor + ';height:100%;"></div>';
-      html += '</div>';
-      // Hobbies narrow column
-      html += '<div style="width:' + colW + ';flex-shrink:0;">';
-      html += '<div style="font-size:' + ls + ';font-weight:600;text-transform:uppercase;letter-spacing:1px;color:' + hexToMid(ac) + ';text-align:center;margin-bottom:' + gap + ';">Hobbies</div>';
-      html += renderHobbiesGrid(ac, forExport, true);
-      html += '</div>';
-      html += '</div>'; // end flex row
-    } else {
-      html += renderAboutMeFields(ac, bgMid);
-      html += renderPersonalFields(ac, bgMid);
-      html += renderEducationFields(ac, bgMid);
-      html += renderFamilyFields(ac, bgMid);
-      html += renderPaternalFamilyFields(ac, bgMid);
-      html += renderMaternalFamilyFields(ac, bgMid);
-      if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
-      if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
-      html += renderSocialFields(ac, bgMid);
-      html += renderContactFields(ac, bgMid);
-    }
-
-    html += '</div>'; // end pv-details
-  } else {
-    // Left/Right: photo column contains photo + hobbies below it
-    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
-    // Photo column with hobbies below
-    html += '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:' + photoW + '">';
-    html += renderPhoto(ac, bgMid, '100%', photoShape, '');
-    if (hasHobbies) {
-      var hobbyW = forExport ? '60px' : '46px';
-      html += '<div style="width:100%;padding-top:10px;">';
-      html += '<div style="font-size:' + (forExport ? '8px' : '6.5px') + ';font-weight:600;text-transform:uppercase;letter-spacing:1px;color:' + hexToMid(ac) + ';text-align:center;margin-bottom:' + (forExport ? '8px' : '5px') + ';">Hobbies</div>';
-      html += renderHobbiesGrid(ac, forExport, true);
-      html += '</div>';
-    }
-    html += '</div>';
-    // Details column
     html += '<div class="pv-details">';
     html += renderAboutMeFields(ac, bgMid);
     html += renderPersonalFields(ac, bgMid);
@@ -1991,6 +1847,23 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderSocialFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
+    html += renderHobbiesFields(ac, bgMid);
+    html += '</div>';
+  } else {
+    html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
+    html += renderPhoto(ac, bgMid, photoW, photoShape, '');
+    html += '<div class="pv-details">';
+    html += renderAboutMeFields(ac, bgMid);
+    html += renderPersonalFields(ac, bgMid);
+    html += renderEducationFields(ac, bgMid);
+    html += renderFamilyFields(ac, bgMid);
+    html += renderPaternalFamilyFields(ac, bgMid);
+    html += renderMaternalFamilyFields(ac, bgMid);
+    if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
+    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
+    html += renderSocialFields(ac, bgMid);
+    html += renderContactFields(ac, bgMid);
+    html += renderHobbiesFields(ac, bgMid);
     html += '</div>';
     html += '</div>';
   }
@@ -2200,6 +2073,14 @@ function renderSocialFields(ac, bgMid) {
   if (formData.linkedin) html += renderFieldRow('LinkedIn', formData.linkedin, ac, bgMid);
   if (formData.instagram) html += renderFieldRow('Instagram', formData.instagram, ac, bgMid);
   if (formData.socialOther) html += renderFieldRow('Other', formData.socialOther, ac, bgMid);
+  html += '</div>';
+  return html;
+}
+
+function renderHobbiesFields(ac, bgMid) {
+  if (hiddenSections.hobbies || !formData.hobbies) return '';
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Hobbies &amp; interests', ac, bgMid);
+  html += '<div class="pv-pref-text" style="font-size:' + (window._sz ? window._sz.pref : '13px') + ';line-height:1.6;color:' + darken(ac, 0.15) + '">' + formData.hobbies + '</div>';
   html += '</div>';
   return html;
 }
@@ -3002,9 +2883,7 @@ function autoSave() {
         hiddenFields: hiddenFields, hiddenSections: hiddenSections,
         customize: customize, photoData: photoData,
         incomeRangeActive: incomeRangeActive, incomeRangeValue: incomeRangeValue,
-        selectedHobbies: selectedHobbies,
-        fatherSiblings: fatherSiblings, motherSiblings: motherSiblings
-      };
+        fatherSiblings: fatherSiblings, motherSiblings: motherSiblings      };
       localStorage.setItem('biodata_autosave', JSON.stringify(saveData));
     } catch(e) {}
   }, 500);
@@ -3039,7 +2918,6 @@ function loadAutoSave() {
     if (data.siblings) { siblings = data.siblings; renderSiblings(); }
     if (data.fatherSiblings) { fatherSiblings = data.fatherSiblings; renderFatherSiblingsList(); }
     if (data.motherSiblings) { motherSiblings = data.motherSiblings; renderMotherSiblingsList(); }
-    if (data.selectedHobbies) { selectedHobbies = data.selectedHobbies; renderHobbiesPicker(); }
     if (data.hiddenFields) { hiddenFields = data.hiddenFields; }
     if (data.hiddenSections) { hiddenSections = data.hiddenSections; }
     if (data.customize) { customize = Object.assign(customize, data.customize); }
