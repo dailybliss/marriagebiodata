@@ -542,23 +542,21 @@ body {
   box-shadow: 0 8px 40px rgba(20,10,5,0.3);
 }
 .modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
+  display: none;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
-  background: rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.9);
   cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-mid);
-  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: background var(--transition);
 }
-.modal-close:hover { background: rgba(0,0,0,0.1); }
+.modal-overlay.open .modal-close { display: flex; }
+.modal-close:hover { background: #fff; }
 .modal-close svg { width: 16px; height: 16px; }
 
 .modal-preview {
@@ -907,10 +905,10 @@ body {
 
   <!-- MODAL -->
   <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <button class="modal-close" onclick="closeModalDirect()" style="position:fixed;top:16px;right:16px;z-index:1001">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+    </button>
     <div class="modal-card" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeModalDirect()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
-      </button>
       <div class="modal-preview" id="modal-preview"></div>
       <div class="modal-footer">
         <div style="display:flex;align-items:center;gap:8px">
