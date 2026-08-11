@@ -831,38 +831,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
-    <!-- SOCIAL MEDIA (optional) -->
-    <div class="form-card" id="sec-social">
-      <div class="form-card-header" onclick="toggleCollapse('sec-social')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Social media
-          <span class="multipage-badge">Multi-page only</span>
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle" data-section="social" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group">
-            <div class="field-label">LinkedIn <button class="field-hide-btn" data-field="linkedin" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="linkedin" placeholder="linkedin.com/in/username" oninput="updatePreview()">
-          </div>
-          <div class="field-group">
-            <div class="field-label">Instagram <button class="field-hide-btn" data-field="instagram" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="instagram" placeholder="@username" oninput="updatePreview()">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group full">
-            <div class="field-label">Other <button class="field-hide-btn" data-field="socialOther" onclick="toggleField(this)">Hide</button></div>
-            <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- PARTNER PREFERENCES (optional) -->
     <div class="form-card" id="sec-preferences">
@@ -1149,7 +1117,6 @@ var formData = {
   aboutMe: '',
   paternalGrandfather: '', paternalGrandfatherOcc: '', paternalGrandmother: '', paternalNative: '',
   maternalGrandfather: '', maternalGrandfatherOcc: '', maternalGrandmother: '', maternalNative: '',
-  linkedin: '', instagram: '', socialOther: '',
   hobbies: ''
 };
 
@@ -1248,7 +1215,7 @@ function init() {
 }
 
 // Sections that are only available in multi-page mode
-var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-social', 'sec-photopage', 'sec-horoscope', 'sec-hobbies'];
+var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-photopage', 'sec-horoscope', 'sec-hobbies'];
 
 function applyMultipageRestrictions() {
   var isSingle = maxPages === 1;
@@ -1846,7 +1813,6 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
-    html += renderSocialFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
@@ -1862,7 +1828,6 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
-    html += renderSocialFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
@@ -2066,17 +2031,6 @@ function renderMaternalFamilyFields(ac, bgMid) {
   return html;
 }
 
-function renderSocialFields(ac, bgMid) {
-  if (hiddenSections.social) return '';
-  var has = formData.linkedin || formData.instagram || formData.socialOther;
-  if (!has) return '';
-  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle('Social media', ac, bgMid);
-  if (formData.linkedin) html += renderFieldRow('LinkedIn', formData.linkedin, ac, bgMid);
-  if (formData.instagram) html += renderFieldRow('Instagram', formData.instagram, ac, bgMid);
-  if (formData.socialOther) html += renderFieldRow('Other', formData.socialOther, ac, bgMid);
-  html += '</div>';
-  return html;
-}
 
 function renderHobbiesFields(ac, bgMid) {
   if (hiddenSections.hobbies || !formData.hobbies) return '';
