@@ -74,11 +74,12 @@ body {
   overflow: hidden;
   width: 100%;
   position: relative;
+  max-width: 900px;
+  margin: 0 auto;
 }
 .showcase-track {
   position: relative;
   width: 100%;
-  /* Height set dynamically by JS based on active slide image ratio */
 }
 .showcase-slide {
   position: absolute;
@@ -1253,12 +1254,11 @@ function showcaseUpdateTrack() {
   if (!viewport || !slides.length) return;
 
   var vpW = viewport.offsetWidth;
-  var slideW = vpW * 0.62; // active slide takes 62% of viewport
-  var peekW = (vpW - slideW) / 2; // each side peek = remaining half
+  var slideW = Math.min(vpW * 0.62, 340); // cap at 340px on wide screens
+  var peekW = (vpW - slideW) / 2;
 
   slides.forEach(function(slide, i) {
     var rel = ((i - showcaseIdx) % showcaseTotal + showcaseTotal) % showcaseTotal;
-    // rel: 0=active(centre), 1=next(right peek), 2=hidden, 3=prev(left peek)
     var left, opacity, scale, zIndex, display;
     if (rel === 0) {
       left = peekW; opacity = 1; scale = 1; zIndex = 2; display = 'block';
@@ -1282,23 +1282,25 @@ function showcaseUpdateTrack() {
     slide.classList.toggle('active', rel === 0);
   });
 
-  // Set track height to match the active slide's actual image height
+  // Set track height from active slide image — attach onload to ALL images
   var track = document.getElementById('showcase-track');
   if (track) {
     var activeImg = slides[showcaseIdx] ? slides[showcaseIdx].querySelector('img') : null;
     if (activeImg && activeImg.naturalHeight > 0) {
-      // Use actual image ratio
       track.style.height = Math.round(slideW * activeImg.naturalHeight / activeImg.naturalWidth) + 'px';
-    } else if (activeImg) {
-      // Image not loaded yet — use A4 portrait ratio as fallback
-      activeImg.onload = function() { showcaseUpdateTrack(); };
-      track.style.height = Math.round(slideW / 0.707) + 'px';
     } else {
+      // Set fallback height and re-run when any image loads
       track.style.height = Math.round(slideW / 0.707) + 'px';
+      slides.forEach(function(slide) {
+        var img = slide.querySelector('img');
+        if (img && !img._loadBound) {
+          img._loadBound = true;
+          img.addEventListener('load', showcaseUpdateTrack);
+        }
+      });
     }
   }
 
-  // Update dots
   var dots = document.querySelectorAll('.showcase-dot');
   dots.forEach(function(d, i) { d.classList.toggle('active', i === showcaseIdx); });
 }
