@@ -337,11 +337,11 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </a>
     <div class="nav-actions">
       <button class="nav-btn" onclick="importData()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Import</span>
       </button>
       <button class="nav-btn" onclick="exportData()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Export</span>
       </button>
     </div>
@@ -1072,8 +1072,11 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 </div>
 
 <!-- SUCCESS MODAL -->
-<div class="success-overlay" id="success-overlay">
+<div class="success-overlay" id="success-overlay" onclick="closeSuccess(event)">
   <div class="success-card">
+    <button class="payment-close" onclick="closeSuccess()" style="position:absolute;top:12px;right:12px">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+    </button>
     <div class="success-check">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20,6 9,17 4,12"/></svg>
     </div>
@@ -1600,7 +1603,7 @@ function renderRealPreview() {
   renderAllPages(function(pageCanvases) {
     displayPreviewCanvases(pageCanvases);
     _previewRendering = false;
-    updatePageIndicator();
+    updatePageIndicator(pageCanvases.length);
     if (_previewQueued) {
       _previewQueued = false;
       renderRealPreview();
@@ -1648,10 +1651,11 @@ function renderCanvasesInto(containerId, pageCanvases) {
   });
 }
 
-function updatePageIndicator() {
+function updatePageIndicator(totalCanvases) {
   var indicator = document.getElementById('page-indicator');
   if (indicator) {
-    indicator.textContent = currentPageCount === 1 ? 'Single page' : currentPageCount + ' pages';
+    var count = totalCanvases || currentPageCount;
+    indicator.textContent = count === 1 ? 'Single page' : count + ' pages';
   }
 }
 
@@ -2285,6 +2289,12 @@ function handleDownload(type) {
   // Store requested type so we can use it after payment
   window._downloadType = type || 'pdf';
   openPayment();
+}
+
+function closeSuccess(e) {
+  if (e && e.target !== document.getElementById('success-overlay') && !e.target.closest('.payment-close')) return;
+  document.getElementById('success-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 function openPayment() {
