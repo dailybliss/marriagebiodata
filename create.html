@@ -831,29 +831,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
-    <!-- PARTNER PREFERENCES (optional) -->
-    <div class="form-card" id="sec-preferences">
-      <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          Partner preferences
-          <span class="multipage-badge">Multi-page only</span>
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle on" data-section="preferences" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group full">
-            <div class="field-label" style="display:flex;justify-content:space-between;align-items:center"><span>Describe your ideal partner</span><span style="font-size:10px;color:var(--text-light)" id="prefs-count">0/200</span></div>
-            <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." maxlength="200" oninput="updateCharCount('partnerPrefs','prefs-count',200);updatePreview()"></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- SOCIAL MEDIA (optional) -->
     <div class="form-card" id="sec-social">
       <div class="form-card-header" onclick="toggleCollapse('sec-social')">
@@ -882,6 +859,29 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           <div class="field-group full">
             <div class="field-label">Other <button class="field-hide-btn" data-field="socialOther" onclick="toggleField(this)">Hide</button></div>
             <input class="field-input" data-field="socialOther" placeholder="Any other profile or portfolio link" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER PREFERENCES (optional) -->
+    <div class="form-card" id="sec-preferences">
+      <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Partner preferences
+          <span class="multipage-badge">Multi-page only</span>
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle on" data-section="preferences" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label" style="display:flex;justify-content:space-between;align-items:center"><span>Describe your ideal partner</span><span style="font-size:10px;color:var(--text-light)" id="prefs-count">0/200</span></div>
+            <textarea class="field-input" data-field="partnerPrefs" placeholder="Looking for a well-educated, family-oriented partner..." maxlength="200" oninput="updateCharCount('partnerPrefs','prefs-count',200);updatePreview()"></textarea>
           </div>
         </div>
       </div>
@@ -1846,8 +1846,8 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
-    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderSocialFields(ac, bgMid);
+    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
   } else {
@@ -1862,8 +1862,8 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
-    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderSocialFields(ac, bgMid);
+    if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
     html += '</div>';
