@@ -38,9 +38,18 @@ body { font-family: var(--font-body); background: #F4F0EA; color: var(--text-dar
 /* NAV */
 .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,253,247,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light); padding: 10px 16px; }
 .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--rose); }
-.nav-brand svg { flex-shrink: 0; }
-.nav-brand span { font-family: var(--font-display); font-size: 14px; font-weight: 600; }
+.nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.nav-brand svg { flex-shrink: 0; color: var(--rose); }
+.nav-brand span {
+  font-family: 'Dancing Script', cursive;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #c0392b, #e67e22, #f1c40f, #27ae60, #2980b9, #8e44ad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
+}
 .nav-actions { display: flex; gap: 8px; align-items: center; }
 .nav-btn { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; font-family: var(--font-body); cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--text-mid); transition: all var(--transition); display: flex; align-items: center; gap: 5px; }
 .nav-btn:hover { border-color: var(--rose); color: var(--rose); }
@@ -242,7 +251,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
   .sibling-entry { flex-direction: column; }
   .sibling-entry .field-group { min-width: 100%; }
   .sibling-remove { margin-top: 0; align-self: flex-end; }
-  .nav-brand span { font-size: 12px; }
+  .nav-brand span { font-size: 16px; }
   .nav-btn span { display: none; }
 }
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -431,7 +440,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- ABOUT ME (optional, multi-page preferred) -->
-    <div class="form-card" id="sec-aboutme">
+    <div class="form-card collapsed" id="sec-aboutme">
       <div class="form-card-header" onclick="toggleCollapse('sec-aboutme')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -677,7 +686,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- PATERNAL FAMILY (optional, multi-page) -->
-    <div class="form-card" id="sec-paternal">
+    <div class="form-card collapsed" id="sec-paternal">
       <div class="form-card-header" onclick="toggleCollapse('sec-paternal')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -724,7 +733,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- MATERNAL FAMILY (optional, multi-page) -->
-    <div class="form-card" id="sec-maternal">
+    <div class="form-card collapsed" id="sec-maternal">
       <div class="form-card-header" onclick="toggleCollapse('sec-maternal')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -771,7 +780,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- HOROSCOPE (optional) -->
-    <div class="form-card" id="sec-horoscope">
+    <div class="form-card collapsed" id="sec-horoscope">
       <div class="form-card-header" onclick="toggleCollapse('sec-horoscope')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
@@ -779,7 +788,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
-          <button class="section-toggle on" data-section="horoscope" onclick="toggleSection(event, this)"></button>
+          <button class="section-toggle" data-section="horoscope" onclick="toggleSection(event, this)"></button>
           <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
         </div>
       </div>
@@ -809,7 +818,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- HOBBIES (optional, multi-page only) -->
-    <div class="form-card" id="sec-hobbies">
+    <div class="form-card collapsed" id="sec-hobbies">
       <div class="form-card-header" onclick="toggleCollapse('sec-hobbies')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -833,7 +842,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 
 
     <!-- PARTNER PREFERENCES (optional) -->
-    <div class="form-card" id="sec-preferences">
+    <div class="form-card collapsed" id="sec-preferences">
       <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -841,7 +850,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
           <span class="multipage-badge">Multi-page only</span>
         </div>
         <div class="form-card-actions">
-          <button class="section-toggle on" data-section="preferences" onclick="toggleSection(event, this)"></button>
+          <button class="section-toggle" data-section="preferences" onclick="toggleSection(event, this)"></button>
           <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
         </div>
       </div>
@@ -895,7 +904,7 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
     <!-- PHOTO PAGE (optional, multi-page only) -->
-    <div class="form-card" id="sec-photopage">
+    <div class="form-card collapsed" id="sec-photopage">
       <div class="form-card-header" onclick="toggleCollapse('sec-photopage')">
         <div class="form-card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
@@ -1124,7 +1133,15 @@ var formData = {
 };
 
 var hiddenFields = {};
-var hiddenSections = {};
+var hiddenSections = {
+  aboutme: true,
+  preferences: true,
+  paternal: true,
+  maternal: true,
+  photopage: true,
+  horoscope: true,
+  hobbies: true
+};
 var siblings = [];
 var fatherSiblings = [];
 var motherSiblings = [];
@@ -1210,11 +1227,24 @@ function init() {
   renderIconSelect();
   renderTemplateSwitcher();
   syncSinglePageToggle();
+  syncSectionToggles();
   updateRectangleAvailability();
   renderFatherSiblingsList();
   renderMotherSiblingsList();
   readForm();
   renderRealPreview();
+}
+
+function syncSectionToggles() {
+  document.querySelectorAll('.section-toggle[data-section]').forEach(function(btn) {
+    var sec = btn.getAttribute('data-section');
+    var isHidden = hiddenSections[sec];
+    if (isHidden) {
+      btn.classList.remove('on');
+    } else {
+      btn.classList.add('on');
+    }
+  });
 }
 
 // Sections that are only available in multi-page mode
@@ -2884,7 +2914,13 @@ function loadAutoSave() {
     if (data.fatherSiblings) { fatherSiblings = data.fatherSiblings; renderFatherSiblingsList(); }
     if (data.motherSiblings) { motherSiblings = data.motherSiblings; renderMotherSiblingsList(); }
     if (data.hiddenFields) { hiddenFields = data.hiddenFields; }
-    if (data.hiddenSections) { hiddenSections = data.hiddenSections; }
+    if (data.hiddenSections) {
+      // Merge: keep default hidden state for multipage sections if not in saved data
+      hiddenSections = Object.assign({
+        aboutme: true, preferences: true, paternal: true, maternal: true,
+        photopage: true, horoscope: true, hobbies: true
+      }, data.hiddenSections);
+    }
     if (data.customize) { customize = Object.assign(customize, data.customize); }
     if (data.photoData) {
       photoData = data.photoData;
@@ -2908,4 +2944,4 @@ if (document.fonts && document.fonts.ready) {
 </script>
 
 </body>
-</html>
+  </html>
