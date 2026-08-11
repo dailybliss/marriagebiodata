@@ -808,6 +808,29 @@ textarea.field-input { resize: vertical; min-height: 60px; }
       </div>
     </div>
 
+    <!-- HOBBIES (optional, multi-page only) -->
+    <div class="form-card" id="sec-hobbies">
+      <div class="form-card-header" onclick="toggleCollapse('sec-hobbies')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Hobbies
+          <span class="multipage-badge">Multi-page only</span>
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="hobbies" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Hobbies &amp; interests</div>
+            <input class="field-input" data-field="hobbies" placeholder="e.g. Reading, Cooking, Travel, Music, Yoga" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PARTNER PREFERENCES (optional) -->
     <div class="form-card" id="sec-preferences">
       <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
@@ -960,28 +983,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
 
-    <!-- HOBBIES (optional, multi-page only) -->
-    <div class="form-card" id="sec-hobbies">
-      <div class="form-card-header" onclick="toggleCollapse('sec-hobbies')">
-        <div class="form-card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Hobbies
-          <span class="multipage-badge">Multi-page only</span>
-        </div>
-        <div class="form-card-actions">
-          <button class="section-toggle" data-section="hobbies" onclick="toggleSection(event, this)"></button>
-          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
-        </div>
-      </div>
-      <div class="form-card-body">
-        <div class="field-row">
-          <div class="field-group full">
-            <div class="field-label">Hobbies &amp; interests</div>
-            <input class="field-input" data-field="hobbies" placeholder="e.g. Reading, Cooking, Travel, Music, Yoga" oninput="updatePreview()">
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- CUSTOMIZATION -->
     <div class="form-card" id="sec-customize">
@@ -1844,10 +1845,10 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderPaternalFamilyFields(ac, bgMid);
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
+    html += renderHobbiesFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderSocialFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
-    html += renderHobbiesFields(ac, bgMid);
     html += '</div>';
   } else {
     html += '<div class="pv-body" style="flex-direction:' + (photoOnRight ? 'row-reverse' : 'row') + ';align-items:flex-start">';
@@ -1860,10 +1861,10 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderPaternalFamilyFields(ac, bgMid);
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
+    html += renderHobbiesFields(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderSocialFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
-    html += renderHobbiesFields(ac, bgMid);
     html += '</div>';
     html += '</div>';
   }
