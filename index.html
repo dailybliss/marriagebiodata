@@ -543,6 +543,9 @@ body {
 }
 .modal-close {
   display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -554,6 +557,7 @@ body {
   color: var(--text-mid);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: background var(--transition);
+  z-index: 2;
 }
 .modal-overlay.open .modal-close { display: flex; }
 .modal-close:hover { background: #fff; }
@@ -905,10 +909,10 @@ body {
 
   <!-- MODAL -->
   <div class="modal-overlay" id="modal" onclick="closeModal(event)">
-    <button class="modal-close" onclick="closeModalDirect()" style="position:fixed;top:16px;right:16px;z-index:1001">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
-    </button>
     <div class="modal-card" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="event.stopPropagation();closeModalDirect()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+      </button>
       <div class="modal-preview" id="modal-preview"></div>
       <div class="modal-footer">
         <div style="display:flex;align-items:center;gap:8px">
