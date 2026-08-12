@@ -2341,28 +2341,12 @@ function closePayment(e) {
 function initiatePayment() {
   closePayment();
 
-  // === TESTING MODE: Hardcoded success ===
-  // Remove this block and uncomment Razorpay block below when going live
-  paymentDone = true;
-  try {
-    var paymentInfo = {
-      paymentId: 'test_' + Date.now(),
-      paidAt: new Date().toISOString(),
-      amount: PAYMENT_AMOUNT / 100
-    };
-    localStorage.setItem('biodata_payment', JSON.stringify(paymentInfo));
-  } catch(e) {}
-  onPaymentSuccess();
-  return;
-  // === END TESTING MODE ===
-
-  /* === LIVE RAZORPAY — uncomment when ready ===
   var options = {
     key: RAZORPAY_KEY,
     amount: PAYMENT_AMOUNT,
     currency: 'INR',
     name: 'Marriage Biodata Creator',
-    description: 'Biodata PDF Download',
+    description: 'Biodata Download — PDF & Image',
     image: '',
     handler: function(response) {
       paymentDone = true;
@@ -2397,7 +2381,6 @@ function initiatePayment() {
   } catch(e) {
     alert('Payment gateway could not load. Please disable any ad blockers and try again.');
   }
-  === END LIVE RAZORPAY === */
 }
 
 function onPaymentSuccess() {
@@ -2944,4 +2927,4 @@ if (document.fonts && document.fonts.ready) {
 </script>
 
 </body>
-  </html>
+</html>
