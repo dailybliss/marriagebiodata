@@ -175,14 +175,17 @@ body {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: var(--rose);
 }
-.nav-brand svg { flex-shrink: 0; }
+.nav-brand svg { flex-shrink: 0; color: var(--rose); }
 .nav-brand span {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
+  font-family: 'Dancing Script', cursive;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #c0392b, #e67e22, #f1c40f, #27ae60, #2980b9, #8e44ad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
 }
 .nav-cta {
   background: var(--rose);
@@ -720,7 +723,7 @@ body {
 /* DESKTOP: hero side-by-side with thumbnails, grid 4 columns */
 @media (min-width: 769px) {
   .nav-inner { max-width: 960px; }
-  .nav-brand span { font-size: 17px; }
+  .nav-brand span { font-size: 22px; }
   .section-title { font-size: 13px; }
   .single-view { max-width: 100%; }
   .single-view-layout {
