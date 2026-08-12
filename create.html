@@ -1874,8 +1874,9 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
       var iconSize = forExport ? '36px' : sz.icon;
       var coloredSvg = iconDef.svg
         .replace(/fill="currentColor"/g, 'fill="' + ac + '"')
-        .replace('<svg ', '<svg style="width:' + iconSize + ';height:' + iconSize + ';display:block;margin:0 auto" ');
-      html += '<div class="pv-icon">' + coloredSvg + '</div>';
+        .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+      var dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(coloredSvg);
+      html += '<div class="pv-icon"><img src="' + dataUrl + '" style="width:' + iconSize + ';height:' + iconSize + ';display:block;margin:0 auto"></div>';
     }
   }
   html += '<div class="pv-name" style="font-family:\'' + df + '\',serif;font-size:' + sz.name + ';color:' + ac + '">' + name + '</div>';
