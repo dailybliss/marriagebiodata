@@ -2304,6 +2304,10 @@ function handleImport(e) {
 
 // ===== PAYMENT STATE =====
 var paymentDone = false;
+// Clear any stale payment data on load
+(function() {
+  try { localStorage.removeItem('biodata_payment'); } catch(e) {}
+})();
 var generatedPDFBlob = null;
 var generatedImageBlob = null;
 var RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXX'; // Replace with your Razorpay Key ID
@@ -2834,19 +2838,15 @@ function triggerDownload(blob, filename) {
   a.click();
   document.body.removeChild(a);
   setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  // Reset payment after download — next download requires a new payment
+  paymentDone = false;
+  try { localStorage.removeItem('biodata_payment'); } catch(e) {}
 }
 
 // ===== CHECK EXISTING PAYMENT =====
 function checkExistingPayment() {
-  try {
-    var saved = localStorage.getItem('biodata_payment');
-    if (saved) {
-      var info = JSON.parse(saved);
-      if (info.paymentId) {
-        paymentDone = true;
-      }
-    }
-  } catch(e) {}
+  // Payment resets after every download — always require payment per download
+  paymentDone = false;
 }
 
 // ===== AUTO-SAVE (debounced) =====
