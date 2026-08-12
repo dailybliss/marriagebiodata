@@ -1002,6 +1002,16 @@ body {
 </div>
 
 <script>
+
+// ===== DOMAIN LOCK =====
+(function() {
+  var allowed = ['marriagebiodatamaker.co', 'www.marriagebiodatamaker.co'];
+  if (allowed.indexOf(location.hostname) === -1) {
+    document.documentElement.innerHTML = '';
+    throw new Error();
+  }
+})();
+
 var templates = [
   { id: 'kalash-ornate', name: 'Kalash Ornate', cat: 'traditional', bg: '#F0EAD8', border: '#C8A86C', accent: '#7B5E2A', gold: '#B8943A', fieldBg: '#E0D4B8', secBg: '#C8A86C88', photoBg: '#E8DEC8', icon: '\u0950', nameText: 'Priya Sharma', nameColor: '#7B5E2A', bgImage: 'templates/kalash-ornate.jpg' },
   { id: 'flower', name: 'Flower', cat: 'floral', bg: '#FFF0F4', border: '#E8C0D0', accent: '#8B2050', gold: '#C06080', fieldBg: '#F0D0DC', secBg: '#E8B0C888', photoBg: '#F8E0E8', icon: '\u2740', nameText: 'Priya Sharma', nameColor: '#8B2050', bgImage: 'templates/flower.jpg' },
