@@ -1872,7 +1872,9 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     var iconDef = iconOptions.find(function(ic) { return ic.id === customize.icon; });
     if (iconDef && iconDef.svg) {
       var iconSize = forExport ? '36px' : sz.icon;
-      var coloredSvg = iconDef.svg.replace('fill="currentColor"', 'fill="' + ac + '"').replace('<svg ', '<svg style="width:' + iconSize + ';height:' + iconSize + ';display:block;margin:0 auto" ');
+      var coloredSvg = iconDef.svg
+        .replace(/fill="currentColor"/g, 'fill="' + ac + '"')
+        .replace('<svg ', '<svg style="width:' + iconSize + ';height:' + iconSize + ';display:block;margin:0 auto" ');
       html += '<div class="pv-icon">' + coloredSvg + '</div>';
     }
   }
@@ -2431,13 +2433,41 @@ function closePayment(e) {
   document.body.style.overflow = '';
 }
 
-var RAZORPAY_PAYMENT_LINK = 'https://rzp.io/rzp/qdh3b4G';
+// var RAZORPAY_PAYMENT_LINK = 'https://rzp.io/rzp/qdh3b4G'; // enable when ready
 
 function initiatePayment() {
   closePayment();
-  // Redirect to Razorpay payment link — on success Razorpay redirects back
-  // to create.html with razorpay_payment_id in the URL
+
+  // === TEST MODE ===
+  var testOverlay = document.createElement('div');
+  testOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif';
+  testOverlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
+      '<div style="font-size:32px;margin-bottom:12px">💳</div>' +
+      '<div style="font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Test Payment</div>' +
+      '<div style="font-size:13px;color:#888;margin-bottom:8px">Amount: ₹99</div>' +
+      '<div style="font-size:12px;color:#aaa;margin-bottom:24px;background:#f5f5f5;border-radius:8px;padding:8px">Test mode — choose outcome.</div>' +
+      '<div style="display:flex;gap:10px">' +
+        '<button id="test-pay-fail" style="flex:1;padding:12px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;font-size:14px;font-weight:600;color:#e74c3c;cursor:pointer">✗ Fail</button>' +
+        '<button id="test-pay-pass" style="flex:1;padding:12px;border:none;border-radius:10px;background:#27ae60;font-size:14px;font-weight:600;color:#fff;cursor:pointer">✓ Pay ₹99</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(testOverlay);
+
+  document.getElementById('test-pay-pass').onclick = function() {
+    document.body.removeChild(testOverlay);
+    paymentDone = true;
+    onPaymentSuccess();
+  };
+  document.getElementById('test-pay-fail').onclick = function() {
+    document.body.removeChild(testOverlay);
+    alert('Payment failed. Please try again.');
+  };
+
+  /* === RAZORPAY PAYMENT LINK — enable when account is ready ===
   window.location.href = RAZORPAY_PAYMENT_LINK;
+  === END RAZORPAY === */
 }
 
 // Check if we were redirected back from Razorpay after successful payment
