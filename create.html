@@ -1150,6 +1150,16 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 <div id="pdf-render-container" style="position:fixed;top:0;left:-9999px;width:595px;height:842px;overflow:hidden;z-index:-1;pointer-events:none;display:none;font-family:'Lato',sans-serif;"></div>
 
 <script>
+
+// ===== DOMAIN LOCK =====
+(function() {
+  var allowed = ['marriagebiodatamaker.co', 'www.marriagebiodatamaker.co'];
+  if (allowed.indexOf(location.hostname) === -1) {
+    document.documentElement.innerHTML = '';
+    throw new Error();
+  }
+})();
+
 // ===== STATE =====
 var formData = {
   fullName: '', dob: '', birthTime: '', birthPlace: '', height: '', religion: '', caste: '', gotra: '', complexion: '',
