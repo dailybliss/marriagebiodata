@@ -1871,12 +1871,20 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
   if (customize.icon) {
     var iconDef = iconOptions.find(function(ic) { return ic.id === customize.icon; });
     if (iconDef && iconDef.svg) {
-      var iconSize = forExport ? '36px' : sz.icon;
+      var iconPx = forExport ? 36 : parseInt(sz.icon) || 28;
+      // Extract viewBox to preserve aspect ratio, add explicit width/height to the SVG
+      var vbMatch = iconDef.svg.match(/viewBox="([\d.\s]+)"/);
+      var vbW = 100, vbH = 100;
+      if (vbMatch) {
+        var vb = vbMatch[1].split(/\s+/).map(parseFloat);
+        vbW = vb[2]; vbH = vb[3];
+      }
+      var iconH = Math.round(iconPx * vbH / vbW);
       var coloredSvg = iconDef.svg
         .replace(/fill="currentColor"/g, 'fill="' + ac + '"')
-        .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+        .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="' + iconPx + '" height="' + iconH + '" ');
       var dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(coloredSvg);
-      html += '<div class="pv-icon"><img src="' + dataUrl + '" style="width:' + iconSize + ';height:' + iconSize + ';display:block;margin:0 auto"></div>';
+      html += '<div class="pv-icon" style="text-align:center"><img src="' + dataUrl + '" width="' + iconPx + '" height="' + iconH + '" style="width:' + iconPx + 'px;height:' + iconH + 'px;display:inline-block"></div>';
     }
   }
   html += '<div class="pv-name" style="font-family:\'' + df + '\',serif;font-size:' + sz.name + ';color:' + ac + '">' + name + '</div>';
@@ -2346,6 +2354,18 @@ function handleImport(e) {
       if (data.hiddenSections) { hiddenSections = data.hiddenSections; }
       if (data.customize) {
         customize = Object.assign(customize, data.customize);
+        var iconMig = {
+          '\u0950': 'hinduism', '\u271D': 'christianity', '\u2720': 'christianity',
+          '\u262A': 'islam', '\u262C': 'sikhism', '\u2638': 'jainism',
+          '\u2721': 'none', '\u2625': 'none', '\u262F': 'none', '\u2605': 'none',
+          '\u2767': 'none', '\u26E9': 'none', '\uFD3F': 'islam', '': 'none'
+        };
+        if (customize.icon && iconMig.hasOwnProperty(customize.icon)) {
+          customize.icon = iconMig[customize.icon];
+        }
+        if (!iconOptions.find(function(ic) { return ic.id === customize.icon; })) {
+          customize.icon = 'hinduism';
+        }
         renderColorPresets();
         renderFontSelect();
         renderIconSelect();
@@ -3005,7 +3025,23 @@ function loadAutoSave() {
         photopage: true, horoscope: true, hobbies: true
       }, data.hiddenSections);
     }
-    if (data.customize) { customize = Object.assign(customize, data.customize); }
+    if (data.customize) {
+      customize = Object.assign(customize, data.customize);
+      // Migrate old Unicode icon values to new id-based system
+      var iconMigration = {
+        '\u0950': 'hinduism', '\u271D': 'christianity', '\u2720': 'christianity',
+        '\u262A': 'islam', '\u262C': 'sikhism', '\u2638': 'jainism',
+        '\u2721': 'none', '\u2625': 'none', '\u262F': 'none', '\u2605': 'none',
+        '\u2767': 'none', '\u26E9': 'none', '\uFD3F': 'islam', '': 'none'
+      };
+      if (customize.icon && iconMigration.hasOwnProperty(customize.icon)) {
+        customize.icon = iconMigration[customize.icon];
+      }
+      // If icon id doesn't match any option, default to hinduism
+      if (!iconOptions.find(function(ic) { return ic.id === customize.icon; })) {
+        customize.icon = 'hinduism';
+      }
+    }
     if (data.photoData) {
       photoData = data.photoData;
       document.getElementById('photo-preview').innerHTML = '<img src="' + photoData + '" alt="Profile photo">';
