@@ -720,7 +720,21 @@ body {
 }
 .trust-item svg { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; }
 
-/* DESKTOP: hero side-by-side with thumbnails, grid 4 columns */
+/* FAQ SECTION */
+.faq-section { background: #fff; padding: 60px 20px; }
+.faq-inner { max-width: 760px; margin: 0 auto; }
+.faq-header { text-align: center; margin-bottom: 36px; }
+.faq-title { font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); color: var(--text-dark); margin-top: 8px; font-weight: 600; }
+.faq-list { display: flex; flex-direction: column; gap: 0; }
+.faq-item { border-bottom: 1px solid var(--border-light); }
+.faq-item:first-child { border-top: 1px solid var(--border-light); }
+.faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; background: none; border: none; cursor: pointer; text-align: left; font-size: 15px; font-weight: 600; color: var(--text-dark); font-family: var(--font-body); line-height: 1.4; }
+.faq-q:hover { color: var(--rose); }
+.faq-icon { width: 18px; height: 18px; flex-shrink: 0; transition: transform 0.25s ease; color: var(--text-light); }
+.faq-q[aria-expanded="true"] .faq-icon { transform: rotate(180deg); color: var(--rose); }
+.faq-a { display: none; padding-bottom: 18px; }
+.faq-a p { font-size: 14px; color: var(--text-mid); line-height: 1.7; margin: 0; }
+.faq-a.open { display: block; }
 @media (min-width: 769px) {
   .nav-inner { max-width: 960px; }
   .nav-brand span { font-size: 22px; }
@@ -791,6 +805,24 @@ body {
   .trust-bar { gap: 12px; }
 }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"What is a marriage biodata and how is it different from a resume?","acceptedAnswer":{"@type":"Answer","text":"A marriage biodata is a personal profile used in the Indian matrimonial process, including personal details like date of birth, height, religion, caste, family background, horoscope details, and partner preferences."}},
+    {"@type":"Question","name":"How do I create a biodata for marriage online?","acceptedAnswer":{"@type":"Answer","text":"Choose a template, fill in your details, upload your photo, preview live, and download as PDF or image for ₹99. No login required. Takes less than 10 minutes."}},
+    {"@type":"Question","name":"Is this marriage biodata maker free to use?","acceptedAnswer":{"@type":"Answer","text":"Preview and fill details are free. Free templates are available for download at no cost. Premium templates cost ₹99 per download — no subscription."}},
+    {"@type":"Question","name":"What formats can I download my marriage biodata in?","acceptedAnswer":{"@type":"Answer","text":"You can download as a high-quality PDF or PNG image. Both are included in the ₹99 payment."}},
+    {"@type":"Question","name":"Are there marriage biodata templates for Hindu and Muslim communities?","acceptedAnswer":{"@type":"Answer","text":"Yes. Select Om for Hindu, Crescent for Muslim, Cross for Christian, or Khanda for Sikh. Community-specific fields like Gotra, Rashi, and Manglik status are included."}},
+    {"@type":"Question","name":"Will my personal data be stored or shared?","acceptedAnswer":{"@type":"Answer","text":"No. All data stays on your device. Nothing is uploaded to our servers."}},
+    {"@type":"Question","name":"Can I make a biodata for marriage on my mobile phone?","acceptedAnswer":{"@type":"Answer","text":"Yes. Works on Android and iPhone browsers. No app installation needed."}},
+    {"@type":"Question","name":"What should a marriage biodata include?","acceptedAnswer":{"@type":"Answer","text":"Personal details, education and career, family background, horoscope details, photo, partner preferences, and contact information."}},
+    {"@type":"Question","name":"Can I edit my biodata after creating it?","acceptedAnswer":{"@type":"Answer","text":"Yes. Your biodata is auto-saved in your browser and can be exported and re-imported for future edits."}},
+    {"@type":"Question","name":"How is Marriage Biodata Maker different from other online biodata makers?","acceptedAnswer":{"@type":"Answer","text":"Built specifically for Indian matrimonial context. Data never leaves your device, no account needed, live preview, PDF and image download, mobile-friendly, community-specific fields and symbols."}}
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -996,6 +1028,119 @@ body {
     <div class="trust-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 11,14 15,10"/></svg>
       Data stays on your device
+    </div>
+  </div>
+
+  <!-- FAQ SECTION -->
+  <div class="faq-section">
+    <div class="faq-inner">
+      <div class="faq-header">
+        <span class="section-title">Frequently asked questions</span>
+        <h2 class="faq-title">Everything about creating your marriage biodata</h2>
+      </div>
+      <div class="faq-list" itemscope itemtype="https://schema.org/FAQPage">
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">What is a marriage biodata and how is it different from a resume?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">A marriage biodata (also called a matrimonial biodata or shaadi biodata) is a personal profile used in the Indian matrimonial process. Unlike a professional resume, a marriage biodata includes personal details like date of birth, height, religion, caste, gotra, family background, horoscope details, and partner preferences — information relevant to finding a compatible life partner. It's shared with prospective families and on matrimonial platforms during the marriage search process.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">How do I create a biodata for marriage online?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Creating a marriage biodata online with Marriage Biodata Maker is simple. Choose a design from our templates, fill in your personal details, education, family background, and upload your photo. You can preview your biodata live as you type. Once satisfied, pay ₹99 and download it as a high-quality PDF or image — ready to share on WhatsApp or print. No login or signup is required, and the entire process takes less than 10 minutes.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">Is this marriage biodata maker free to use?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">You can fill in all your details and preview your marriage biodata completely free. We offer free biodata templates that you can download at no cost. For premium templates with more elegant designs, there is a one-time payment of ₹99 per download — no subscription, no hidden charges. You only pay when you're happy with your biodata and ready to download it.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">What formats can I download my marriage biodata in?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">You can download your marriage biodata as a high-quality PDF (ideal for printing and email sharing) or as a PNG image (perfect for sharing directly on WhatsApp, Instagram, or matrimonial apps). Both formats are included in the ₹99 download — you can download either or both after payment.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">Are there marriage biodata templates for Hindu and Muslim communities?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Yes. Our marriage biodata maker supports all communities. You can select a religious symbol (Om for Hinduism, Crescent for Islam, Cross for Christianity, Khanda for Sikhism) that appears at the top of your biodata. The form includes relevant fields like Gotra and Rashi for Hindu biodata format, and can be customised for Muslim marriage biodata format, Christian, or Sikh biodatas. Community-specific fields like Manglik status and horoscope details are included as optional sections.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">Will my personal data be stored or shared?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">No. All your personal information stays entirely on your device — we do not upload, store, or share any of your biodata details on our servers. The biodata is generated locally in your browser. You can also export your data as a JSON file to reuse it later without retyping. Your privacy is completely protected.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">Can I make a biodata for marriage on my mobile phone?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Yes, Marriage Biodata Maker works seamlessly on mobile phones, tablets, and desktops. The interface is fully responsive — you can fill in your details, preview your biodata, and download it directly from your Android or iPhone browser without installing any app. No signup or login is required.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">What should a marriage biodata include?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">A complete marriage biodata typically includes: personal details (name, date of birth, height, complexion, religion, caste), education and career information, family details (parents' names and occupations, siblings), horoscope details (Rashi, Nakshatra, Manglik status), a recent photograph, partner preferences, and contact information. Our marriage biodata maker covers all these sections with optional fields you can show or hide based on your preference.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">Can I edit my biodata after creating it?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Yes. Your biodata is automatically saved in your browser, so if you close and reopen the page, all your details are preserved. You can make changes anytime and re-download. We also provide an Export Data option that saves all your information as a file — you can import it later to continue editing without retyping everything from scratch.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+            <span itemprop="name">How is Marriage Biodata Maker different from other online biodata makers?</span>
+            <svg class="faq-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <p itemprop="text">Marriage Biodata Maker is built specifically for the Indian matrimonial context — not a generic resume builder. Key differences: your data never leaves your device (full privacy), no account creation needed, live preview shows exactly how your biodata will look as you type, download as both PDF and image in one payment, mobile-friendly, and templates designed specifically for Indian marriage biodatas with community-specific fields and symbols. It's the fastest way to prepare a biodata for marriage online.</p>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -1235,6 +1380,20 @@ function openModal() {
   document.getElementById('modal-name').textContent = t.name;
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function toggleFaq(btn) {
+  var isOpen = btn.getAttribute('aria-expanded') === 'true';
+  // Close all
+  document.querySelectorAll('.faq-q').forEach(function(b) {
+    b.setAttribute('aria-expanded', 'false');
+    b.nextElementSibling.classList.remove('open');
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    btn.setAttribute('aria-expanded', 'true');
+    btn.nextElementSibling.classList.add('open');
+  }
 }
 
 function closeModal(e) {
