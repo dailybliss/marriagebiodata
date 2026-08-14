@@ -765,8 +765,10 @@ body {
 }
 
 /* QUOTE CAROUSEL */
-.quote-section { background: #fff8f5; border-top: 1px solid #f0d0c0; border-bottom: 1px solid #f0d0c0; padding: 56px 20px; }
-.quote-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+.quote-section { background: #fff8f5; padding: 56px 20px; position: relative; }
+.quote-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to bottom, var(--bg-warm), #fff8f5); }
+.quote-section::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to top, #fff, #fff8f5); }
+.quote-inner { max-width: 680px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
 .quote-rule { width: 48px; height: 3px; background: var(--rose); margin: 0 auto 32px; border-radius: 2px; }
 .quote-rule2 { width: 48px; height: 3px; background: var(--rose); margin: 28px auto 24px; border-radius: 2px; }
 .quote-wrap { min-height: 110px; position: relative; }
