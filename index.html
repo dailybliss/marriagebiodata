@@ -720,6 +720,35 @@ body {
 }
 .trust-item svg { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; }
 
+/* COMPARISON TABLE */
+.compare-section { background: var(--bg-warm); padding: 60px 20px; }
+.compare-inner { max-width: 860px; margin: 0 auto; }
+.compare-header { text-align: center; margin-bottom: 32px; }
+.compare-title { font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); color: var(--text-dark); margin-top: 8px; font-weight: 600; }
+.compare-sub { font-size: 14px; color: var(--text-mid); margin-top: 10px; }
+.compare-wrap { overflow-x: auto; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+.compare-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; min-width: 480px; }
+.compare-table thead tr { background: var(--rose); }
+.compare-table thead th { padding: 14px 16px; text-align: center; color: #fff; font-weight: 600; font-size: 13px; }
+.compare-table thead th:first-child { text-align: left; border-radius: 12px 0 0 0; }
+.compare-table thead th:last-child { border-radius: 0 12px 0 0; }
+.compare-feature-col { width: 36%; }
+.compare-us-col { width: 34%; background: rgba(255,255,255,0.12); }
+.compare-us-label { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.compare-us-label svg { width: 14px; height: 14px; flex-shrink: 0; }
+.compare-table tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border-light); color: var(--text-mid); vertical-align: middle; text-align: center; }
+.compare-table tbody td:first-child { text-align: left; color: var(--text-dark); font-weight: 500; }
+.compare-us { background: #fff8f9 !important; font-weight: 500; color: var(--text-dark) !important; }
+.compare-alt td { background: var(--bg-warm); }
+.compare-alt .compare-us { background: #fff3f5 !important; }
+.compare-table tbody tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+.compare-table tbody tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+.compare-table tbody tr:last-child td { border-bottom: none; }
+.cmp-yes { color: #27ae60; font-weight: 700; margin-right: 4px; }
+.cmp-no { color: #e74c3c; font-weight: 700; margin-right: 4px; }
+.cmp-mid { color: #e67e22; font-weight: 700; margin-right: 4px; }
+.compare-note { font-size: 11px; color: var(--text-light); text-align: center; margin-top: 14px; font-style: italic; }
+
 /* FAQ SECTION */
 .faq-section { background: #fff; padding: 60px 20px; }
 .faq-inner { max-width: 760px; margin: 0 auto; }
@@ -1028,6 +1057,86 @@ body {
     <div class="trust-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 11,14 15,10"/></svg>
       Data stays on your device
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="compare-section">
+    <div class="compare-inner">
+      <div class="compare-header">
+        <span class="section-title">Why choose us</span>
+        <h2 class="compare-title">Marriage Biodata Maker vs other online biodata makers</h2>
+        <p class="compare-sub">See how <strong>marriagebiodatamaker.co</strong> compares to other marriage biodata creator websites on features that matter most.</p>
+      </div>
+      <div class="compare-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th class="compare-feature-col">Feature</th>
+              <th class="compare-us-col">
+                <div class="compare-us-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  marriagebiodatamaker.co
+                </div>
+              </th>
+              <th>Other biodata makers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="compare-feature">Live preview as you type</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Real file preview</td>
+              <td><span class="cmp-no">✗</span> Static preview only</td>
+            </tr>
+            <tr class="compare-alt">
+              <td class="compare-feature">Data privacy</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Stays on your device</td>
+              <td><span class="cmp-mid">~</span> Uploaded to their servers</td>
+            </tr>
+            <tr>
+              <td class="compare-feature">Download formats</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> PDF <em>and</em> Image</td>
+              <td><span class="cmp-mid">~</span> Usually PDF only</td>
+            </tr>
+            <tr class="compare-alt">
+              <td class="compare-feature">No login or signup</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> No account needed</td>
+              <td><span class="cmp-mid">~</span> Most require registration</td>
+            </tr>
+            <tr>
+              <td class="compare-feature">Community-specific fields</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Gotra, Rashi, Manglik, religious icons</td>
+              <td><span class="cmp-mid">~</span> Basic fields only</td>
+            </tr>
+            <tr class="compare-alt">
+              <td class="compare-feature">Free templates available</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Select free templates</td>
+              <td><span class="cmp-mid">~</span> Free with watermarks</td>
+            </tr>
+            <tr>
+              <td class="compare-feature">Fit to one page option</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Smart single-page mode</td>
+              <td><span class="cmp-no">✗</span> Not available</td>
+            </tr>
+            <tr class="compare-alt">
+              <td class="compare-feature">Photo page support</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Extra photos page</td>
+              <td><span class="cmp-no">✗</span> Single photo only</td>
+            </tr>
+            <tr>
+              <td class="compare-feature">Advanced customization</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Fonts, colours, field on/off, section on/off, photo shape</td>
+              <td><span class="cmp-no">✗</span> Limited or none</td>
+            </tr>
+            <tr class="compare-alt">
+              <td class="compare-feature">Export &amp; re-import data</td>
+              <td class="compare-us"><span class="cmp-yes">✓</span> Export data to reuse anytime</td>
+              <td><span class="cmp-no">✗</span> Not available</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="compare-note">Comparison based on publicly available features of common online marriage biodata maker tools as of 2026.</p>
     </div>
   </div>
 
