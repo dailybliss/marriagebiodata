@@ -861,6 +861,35 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     </div>
 
 
+    <!-- CUSTOM SECTION (multi-page only) -->
+    <div class="form-card collapsed" id="sec-custom">
+      <div class="form-card-header" onclick="toggleCollapse('sec-custom')">
+        <div class="form-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Custom section
+          <span class="multipage-badge">Multi-page only</span>
+        </div>
+        <div class="form-card-actions">
+          <button class="section-toggle" data-section="custom" onclick="toggleSection(event, this)"></button>
+          <svg class="collapse-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4,6 8,10 12,6"/></svg>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field-group full">
+            <div class="field-label">Section title</div>
+            <input class="field-input" id="custom-section-title" placeholder="e.g. Religious Details, Additional Information" oninput="scheduleRealPreview()">
+          </div>
+        </div>
+        <div id="custom-fields-list"></div>
+        <button class="add-sibling-btn" id="custom-add-btn" onclick="addCustomField()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add field
+        </button>
+        <div style="font-size:11px;color:var(--text-light);margin-top:8px">Maximum 5 fields</div>
+      </div>
+    </div>
+
     <!-- PARTNER PREFERENCES (optional) -->
     <div class="form-card collapsed" id="sec-preferences">
       <div class="form-card-header" onclick="toggleCollapse('sec-preferences')">
@@ -1181,7 +1210,8 @@ var hiddenSections = {
   maternal: true,
   photopage: true,
   horoscope: true,
-  hobbies: true
+  hobbies: true,
+  custom: true
 };
 var siblings = [];
 var fatherSiblings = [];
@@ -1271,6 +1301,7 @@ function init() {
   updateRectangleAvailability();
   renderFatherSiblingsList();
   renderMotherSiblingsList();
+  renderCustomFieldsList();
   readForm();
   checkPaymentRedirect();
   renderRealPreview();
@@ -1289,7 +1320,7 @@ function syncSectionToggles() {
 }
 
 // Sections that are only available in multi-page mode
-var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-photopage', 'sec-horoscope', 'sec-hobbies'];
+var MULTIPAGE_ONLY_SECTIONS = ['sec-aboutme', 'sec-preferences', 'sec-paternal', 'sec-maternal', 'sec-photopage', 'sec-horoscope', 'sec-hobbies', 'sec-custom'];
 
 function applyMultipageRestrictions() {
   var isSingle = maxPages === 1;
@@ -1609,6 +1640,53 @@ function toggleMotherSiblingField(idx, field) {
   scheduleRealPreview();
 }
 
+var customFields = []; // [{label:'', value:''}]
+var MAX_CUSTOM_FIELDS = 5;
+
+function addCustomField() {
+  if (customFields.length >= MAX_CUSTOM_FIELDS) return;
+  customFields.push({ label: '', value: '' });
+  renderCustomFieldsList();
+  scheduleRealPreview();
+}
+
+function removeCustomField(idx) {
+  customFields.splice(idx, 1);
+  renderCustomFieldsList();
+  scheduleRealPreview();
+}
+
+function renderCustomFieldsList() {
+  var list = document.getElementById('custom-fields-list');
+  var addBtn = document.getElementById('custom-add-btn');
+  if (!list) return;
+  list.innerHTML = '';
+  customFields.forEach(function(f, i) {
+    var entry = document.createElement('div');
+    entry.className = 'sibling-entry';
+    entry.innerHTML =
+      '<div class="field-group"><div class="field-label">Field label</div><input class="field-input" value="' + (f.label||'') + '" placeholder="e.g. Sect, Denomination" oninput="customFields[' + i + '].label=this.value;scheduleRealPreview()"></div>' +
+      '<div class="field-group"><div class="field-label">Value</div><input class="field-input" value="' + (f.value||'') + '" placeholder="e.g. Sunni, Catholic" oninput="customFields[' + i + '].value=this.value;scheduleRealPreview()"></div>' +
+      '<button class="sibling-remove" onclick="removeCustomField(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+    list.appendChild(entry);
+  });
+  if (addBtn) addBtn.style.display = customFields.length >= MAX_CUSTOM_FIELDS ? 'none' : 'flex';
+}
+
+function renderCustomSection(ac, bgMid) {
+  if (hiddenSections.custom) return '';
+  var titleEl = document.getElementById('custom-section-title');
+  var title = titleEl ? titleEl.value.trim() : '';
+  var hasFields = customFields.some(function(f) { return f.label || f.value; });
+  if (!title && !hasFields) return '';
+  var html = '<div class="pv-section"' + (window._sectionStyle||'') + '>' + renderSectionTitle(title || 'Additional details', ac, bgMid);
+  customFields.forEach(function(f) {
+    if (f.label || f.value) html += renderFieldRow(f.label || '—', f.value || '—', ac, bgMid);
+  });
+  html += '</div>';
+  return html;
+}
+
 function addSibling() {
   siblings.push({ name: '', relation: '', occupation: '', maritalStatus: '' });
   renderSiblings();
@@ -1917,6 +1995,7 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
+    html += renderCustomSection(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
@@ -1932,6 +2011,7 @@ function buildPreviewHTML(includeWatermark, forExport, fitScale) {
     html += renderMaternalFamilyFields(ac, bgMid);
     if (!hiddenSections.horoscope) html += renderHoroscopeFields(ac, bgMid);
     html += renderHobbiesFields(ac, bgMid);
+    html += renderCustomSection(ac, bgMid);
     if (!hiddenSections.preferences) html += renderPreferencesFields(ac, bgMid);
     html += renderContactFields(ac, bgMid);
     html += '</div>';
@@ -2986,7 +3066,9 @@ function autoSave() {
         hiddenFields: hiddenFields, hiddenSections: hiddenSections,
         customize: customize, photoData: photoData,
         incomeRangeActive: incomeRangeActive, incomeRangeValue: incomeRangeValue,
-        fatherSiblings: fatherSiblings, motherSiblings: motherSiblings      };
+        fatherSiblings: fatherSiblings, motherSiblings: motherSiblings,
+        customFields: customFields,
+        customSectionTitle: document.getElementById('custom-section-title') ? document.getElementById('custom-section-title').value : ''      };
       localStorage.setItem('biodata_autosave', JSON.stringify(saveData));
     } catch(e) {}
   }, 500);
@@ -3021,12 +3103,14 @@ function loadAutoSave() {
     if (data.siblings) { siblings = data.siblings; renderSiblings(); }
     if (data.fatherSiblings) { fatherSiblings = data.fatherSiblings; renderFatherSiblingsList(); }
     if (data.motherSiblings) { motherSiblings = data.motherSiblings; renderMotherSiblingsList(); }
+    if (data.customFields) { customFields = data.customFields; renderCustomFieldsList(); }
+    if (data.customSectionTitle) { var el = document.getElementById('custom-section-title'); if (el) el.value = data.customSectionTitle; }
     if (data.hiddenFields) { hiddenFields = data.hiddenFields; }
     if (data.hiddenSections) {
       // Merge: keep default hidden state for multipage sections if not in saved data
       hiddenSections = Object.assign({
         aboutme: true, preferences: true, paternal: true, maternal: true,
-        photopage: true, horoscope: true, hobbies: true
+        photopage: true, horoscope: true, hobbies: true, custom: true
       }, data.hiddenSections);
     }
     if (data.customize) {
