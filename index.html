@@ -764,6 +764,19 @@ body {
   .compare-us-label svg { width: 14px; height: 14px; }
 }
 
+/* QUOTE CAROUSEL */
+.quote-section { background: #fff8f5; border-top: 1px solid #f0d0c0; border-bottom: 1px solid #f0d0c0; padding: 56px 20px; }
+.quote-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+.quote-rule { width: 48px; height: 3px; background: var(--rose); margin: 0 auto 32px; border-radius: 2px; }
+.quote-rule2 { width: 48px; height: 3px; background: var(--rose); margin: 28px auto 24px; border-radius: 2px; }
+.quote-wrap { min-height: 110px; position: relative; }
+.quote-item { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.9s ease; pointer-events: none; }
+.quote-item.active { opacity: 1; pointer-events: auto; position: relative; }
+.quote-text { font-family: var(--font-display); font-size: clamp(17px, 2.5vw, 22px); line-height: 1.75; color: #4a1a28; font-style: italic; margin: 0; }
+.quote-dots { display: flex; gap: 10px; justify-content: center; }
+.quote-dot { width: 10px; height: 10px; border-radius: 50%; border: none; cursor: pointer; padding: 0; transition: transform 0.3s, opacity 0.3s; opacity: 0.4; }
+.quote-dot.active { transform: scale(1.4); opacity: 1; }
+
 /* FAQ SECTION */
 .faq-section { background: #fff; padding: 60px 20px; }
 .faq-inner { max-width: 760px; margin: 0 auto; }
@@ -1230,6 +1243,16 @@ body {
     </div>
   </div>
 
+  <!-- QUOTE CAROUSEL -->
+  <div class="quote-section">
+    <div class="quote-inner">
+      <div class="quote-rule"></div>
+      <div class="quote-wrap" id="quoteWrap"></div>
+      <div class="quote-rule2"></div>
+      <div class="quote-dots" id="quoteDots" role="tablist" aria-label="Quote navigation"></div>
+    </div>
+  </div>
+
   <!-- FAQ SECTION -->
   <div class="faq-section">
     <div class="faq-inner">
@@ -1581,6 +1604,50 @@ function openModal() {
   document.body.style.overflow = 'hidden';
 }
 
+function initQuoteCarousel() {
+  var quotes = [
+    'Your biodata is often the first impression you make on a family. Make it count.',
+    'A beautiful biodata doesn\'t just share your details — it tells your story.',
+    'No designer needed. No login. No fuss. Just you, beautifully presented.',
+    'Privacy first — your personal details never leave your device.',
+    'From blank page to beautiful biodata, in minutes.'
+  ];
+  var dotColors = ['#c0392b', '#e67e22', '#27ae60', '#2980b9', '#8e44ad'];
+  var wrap = document.getElementById('quoteWrap');
+  var dotsEl = document.getElementById('quoteDots');
+  if (!wrap || !dotsEl) return;
+  var current = 0, timer;
+
+  quotes.forEach(function(q, i) {
+    var item = document.createElement('p');
+    item.className = 'quote-item quote-text' + (i === 0 ? ' active' : '');
+    item.textContent = '\u201C' + q + '\u201D';
+    wrap.appendChild(item);
+
+    var dot = document.createElement('button');
+    dot.className = 'quote-dot' + (i === 0 ? ' active' : '');
+    dot.style.background = dotColors[i];
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Quote ' + (i + 1));
+    dot.onclick = function() { goTo(i); };
+    dotsEl.appendChild(dot);
+  });
+
+  function goTo(n) {
+    var items = wrap.querySelectorAll('.quote-item');
+    var dots = dotsEl.querySelectorAll('.quote-dot');
+    items[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (n + quotes.length) % quotes.length;
+    items[current].classList.add('active');
+    dots[current].classList.add('active');
+    clearInterval(timer);
+    timer = setInterval(function() { goTo(current + 1); }, 4500);
+  }
+
+  timer = setInterval(function() { goTo(current + 1); }, 4500);
+}
+
 function toggleFaq(btn) {
   var isOpen = btn.getAttribute('aria-expanded') === 'true';
   // Close all
@@ -1704,7 +1771,7 @@ function showcaseInit() {
 
 // Run as soon as possible, plus on load as a fallback
 showcaseInit();
-window.addEventListener('load', showcaseUpdateTrack);
+window.addEventListener('load', function() { showcaseUpdateTrack(); initQuoteCarousel(); });
 window.addEventListener('resize', showcaseUpdateTrack);
 
 var showcaseEl = document.querySelector('.showcase');
