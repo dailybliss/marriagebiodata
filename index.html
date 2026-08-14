@@ -549,11 +549,6 @@ body {
   display: flex;
   flex-direction: column;
 }
-@media (min-width: 600px) {
-  .modal-card { overflow-y: hidden; max-height: 90vh; }
-  .modal-preview { overflow-y: auto; flex: 1; min-height: 0; }
-  .modal-footer { flex-shrink: 0; }
-}
 .modal-close {
   display: none;
   position: absolute;
@@ -621,6 +616,13 @@ body {
   transition: background var(--transition);
 }
 .modal-use-btn:hover { background: var(--rose-light); }
+
+@media (min-width: 600px) {
+  .modal-card { overflow: hidden; height: 90vh; }
+  .modal-preview-wrap { flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; }
+  .modal-preview { width: auto; height: 100%; }
+  .modal-footer { flex: 0 0 auto; background: #fff; }
+}
 
 /* DIVIDER */
 .section-divider {
@@ -1018,7 +1020,9 @@ body {
       <button class="modal-close" onclick="event.stopPropagation();closeModalDirect()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
       </button>
-      <div class="modal-preview" id="modal-preview"></div>
+      <div class="modal-preview-wrap">
+        <div class="modal-preview" id="modal-preview"></div>
+      </div>
       <div class="modal-footer">
         <div style="display:flex;align-items:center;gap:8px">
           <span class="modal-template-name" id="modal-name"></span>
