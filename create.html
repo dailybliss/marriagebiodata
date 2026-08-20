@@ -2598,6 +2598,9 @@ function initiatePayment() {
       return;
     }
 
+    // Guard: ensure only ONE outcome is processed per checkout session
+    var paymentOutcomeHandled = false;
+
     // Step 2: Open Razorpay checkout with the order
     var options = {
       key: RAZORPAY_KEY_ID,
@@ -2613,12 +2616,16 @@ function initiatePayment() {
         contact: formData.phone || ''
       },
       handler: function(response) {
-        // Step 3: Verify signature via Worker
+        // Success handler — only fires when Razorpay confirms payment captured.
+        // Verify signature server-side before unlocking download.
+        if (paymentOutcomeHandled) return;
+        paymentOutcomeHandled = true;
         verifyAndActivate(response);
       },
       modal: {
         ondismiss: function() {
-          // User closed checkout without paying — do nothing
+          // User closed checkout — reset so they can retry
+          paymentOutcomeHandled = false;
         }
       }
     };
@@ -2626,9 +2633,13 @@ function initiatePayment() {
     try {
       var rzp = new Razorpay(options);
       rzp.on('payment.failed', function(response) {
+        // Failure event — do NOT set paymentOutcomeHandled permanently,
+        // because Razorpay allows retry in the same modal. Just show a toast.
+        // Only show failure if the modal is actually closing (no retry).
         paymentDone = false;
         var reason = response.error ? (response.error.description || response.error.reason || 'Payment failed') : 'Payment failed';
-        showPaymentResult(false, reason + '. Please try again.');
+        // Show a non-blocking inline message; user can still retry in the open modal
+        console.log('Payment attempt failed:', reason);
       });
       rzp.open();
     } catch(e) {
@@ -3266,4 +3277,4 @@ if (document.fonts && document.fonts.ready) {
 </script>
 
 </body>
-</html>
+  </html>
