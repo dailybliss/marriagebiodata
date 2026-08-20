@@ -1051,13 +1051,13 @@ textarea.field-input { resize: vertical; min-height: 60px; }
         <div class="preview-pages" id="preview-pages"></div>
       </div>
       <div class="preview-actions">
-        <button class="preview-action-btn btn-download" onclick="handleDownload('pdf')">
+        <button class="preview-action-btn btn-download" id="btn-download-pdf" onclick="handleDownload('pdf')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download PDF
+          <span id="btn-pdf-label">Download PDF</span>
         </button>
-        <button class="preview-action-btn btn-download" onclick="handleDownload('image')">
+        <button class="preview-action-btn btn-download" id="btn-download-img" onclick="handleDownload('image')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download Image
+          <span id="btn-img-label">Download Image</span>
         </button>
       </div>
     </div>
@@ -1237,13 +1237,13 @@ var customize = {
 // Templates with bgImage use templates/<id>.jpg as background.
 // Default is multi-page (up to 3 pages) so content is never cut.
 var TEMPLATES = {
-  'kalash-ornate':  { singlePage: false, bgImage: 'templates/kalash-ornate.jpg'  },
-  'flower':         { singlePage: false, bgImage: 'templates/flower.jpg'          },
-  'artwork':        { singlePage: false, bgImage: 'templates/artwork.jpg'         },
-  'green':          { singlePage: false, bgImage: 'templates/green.jpg'           },
-  'minimalist':     { singlePage: false, bgImage: 'templates/minimalist.jpg'      },
-  'rainbow':        { singlePage: false, bgImage: 'templates/rainbow.jpg'         },
-  'sky':            { singlePage: false, bgImage: 'templates/sky.jpg'             }
+  'kalash-ornate':  { singlePage: false, bgImage: 'templates/kalash-ornate.jpg', free: true  },
+  'minimalist':     { singlePage: false, bgImage: 'templates/minimalist.jpg',     free: true  },
+  'flower':         { singlePage: false, bgImage: 'templates/flower.jpg',          free: false },
+  'artwork':        { singlePage: false, bgImage: 'templates/artwork.jpg',         free: false },
+  'green':          { singlePage: false, bgImage: 'templates/green.jpg',           free: false },
+  'rainbow':        { singlePage: false, bgImage: 'templates/rainbow.jpg',         free: false },
+  'sky':            { singlePage: false, bgImage: 'templates/sky.jpg',             free: false }
 };
 
 function getTemplateId() {
@@ -1302,6 +1302,7 @@ function init() {
   renderFatherSiblingsList();
   renderMotherSiblingsList();
   renderCustomFieldsList();
+  updateDownloadButtons();
   readForm();
   checkPaymentRedirect();
   renderRealPreview();
@@ -1393,8 +1394,16 @@ function renderTemplateSwitcher() {
     btn.appendChild(label);
     // Price badge
     var price = document.createElement('div');
-    price.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(139,26,58,0.85);color:#fff;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;';
-    price.textContent = '₹99';
+    price.style.cssText = 'position:absolute;top:4px;right:4px;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;';
+    if (tmpl.free) {
+      price.style.background = 'rgba(39,174,96,0.9)';
+      price.style.color = '#fff';
+      price.textContent = 'FREE';
+    } else {
+      price.style.background = 'rgba(139,26,58,0.85)';
+      price.style.color = '#fff';
+      price.textContent = '₹99';
+    }
     btn.appendChild(price);
     btn.onclick = function() { switchTemplate(id); };
     btn.title = id.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
@@ -1416,6 +1425,7 @@ function switchTemplate(id) {
   // Re-render switcher to update active state
   renderTemplateSwitcher();
   syncSinglePageToggle();
+  updateDownloadButtons();
   updatePreview();
 }
 
@@ -2475,9 +2485,22 @@ var generatedImageBlob = null;
 var RAZORPAY_KEY = 'rzp_test_XXXXXXXXXXXXXXX'; // Replace with your Razorpay Key ID
 var PAYMENT_AMOUNT = 9900; // ₹99 in paise
 
+function isFreeTemplate() {
+  return !!(currentTemplate && currentTemplate.free);
+}
+
+function updateDownloadButtons() {
+  var free = isFreeTemplate();
+  var pdfLabel = document.getElementById('btn-pdf-label');
+  var imgLabel = document.getElementById('btn-img-label');
+  if (pdfLabel) pdfLabel.textContent = free ? 'Download PDF — Free' : 'Download PDF — ₹99';
+  if (imgLabel) imgLabel.textContent = free ? 'Download Image — Free' : 'Download Image — ₹99';
+}
+
 // ===== PAYMENT FLOW =====
 function handleDownload(type) {
-  if (paymentDone) {
+  // Free templates skip payment entirely
+  if (isFreeTemplate() || paymentDone) {
     if (type === 'image') downloadImage();
     else downloadPDF();
     return;
@@ -2538,57 +2561,143 @@ function closePayment(e) {
   document.body.style.overflow = '';
 }
 
-// var RAZORPAY_PAYMENT_LINK = 'https://rzp.io/rzp/qdh3b4G'; // enable when ready
+// ===== PAYMENT CONFIG =====
+// Replace these with your actual values after deploying the Cloudflare Worker
+var WORKER_URL = 'https://marriage-biodata-payment-worker.marriagebiodatamaker.workers.dev';
+var RAZORPAY_KEY_ID = 'rzp_live_XXXXXXXXXXXXXXX'; // Replace with your live Key ID when Razorpay activates
+var PAYMENT_AMOUNT = 9900; // ₹99 in paise
 
 function initiatePayment() {
   closePayment();
 
-  // === TEST MODE ===
-  var testOverlay = document.createElement('div');
-  testOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif';
-  testOverlay.innerHTML =
-    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
-      '<div style="font-size:32px;margin-bottom:12px">💳</div>' +
-      '<div style="font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:6px">Test Payment</div>' +
-      '<div style="font-size:13px;color:#888;margin-bottom:8px">Amount: ₹99</div>' +
-      '<div style="font-size:12px;color:#aaa;margin-bottom:24px;background:#f5f5f5;border-radius:8px;padding:8px">Test mode — choose outcome.</div>' +
-      '<div style="display:flex;gap:10px">' +
-        '<button id="test-pay-fail" style="flex:1;padding:12px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;font-size:14px;font-weight:600;color:#e74c3c;cursor:pointer">✗ Fail</button>' +
-        '<button id="test-pay-pass" style="flex:1;padding:12px;border:none;border-radius:10px;background:#27ae60;font-size:14px;font-weight:600;color:#fff;cursor:pointer">✓ Pay ₹99</button>' +
-      '</div>' +
+  // Show loading state
+  var loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'payment-loading';
+  loadingOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif';
+  loadingOverlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:300px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
+      '<div style="font-size:28px;margin-bottom:12px">💳</div>' +
+      '<div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:6px">Preparing payment...</div>' +
+      '<div style="font-size:13px;color:#888">Please wait</div>' +
     '</div>';
+  document.body.appendChild(loadingOverlay);
 
-  document.body.appendChild(testOverlay);
+  // Step 1: Create order via Cloudflare Worker
+  fetch(WORKER_URL + '/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: PAYMENT_AMOUNT })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    document.body.removeChild(loadingOverlay);
 
-  document.getElementById('test-pay-pass').onclick = function() {
-    document.body.removeChild(testOverlay);
-    paymentDone = true;
-    onPaymentSuccess();
-  };
-  document.getElementById('test-pay-fail').onclick = function() {
-    document.body.removeChild(testOverlay);
-    alert('Payment failed. Please try again.');
-  };
+    if (!data.order_id) {
+      alert('Could not initiate payment. Please try again.');
+      return;
+    }
 
-  /* === RAZORPAY PAYMENT LINK — enable when account is ready ===
-  window.location.href = RAZORPAY_PAYMENT_LINK;
-  === END RAZORPAY === */
+    // Step 2: Open Razorpay checkout with the order
+    var options = {
+      key: RAZORPAY_KEY_ID,
+      amount: data.amount,
+      currency: data.currency,
+      order_id: data.order_id,
+      name: 'Marriage Biodata Maker',
+      description: 'Biodata Download — PDF & Image',
+      image: 'https://marriagebiodatamaker.co/favicon.png',
+      theme: { color: '#8B1A3A' },
+      prefill: {
+        name: formData.fullName || '',
+        email: formData.email || '',
+        contact: formData.phone || ''
+      },
+      handler: function(response) {
+        // Step 3: Verify signature via Worker
+        verifyAndActivate(response);
+      },
+      modal: {
+        ondismiss: function() {
+          // User closed checkout without paying — do nothing
+        }
+      }
+    };
+
+    try {
+      var rzp = new Razorpay(options);
+      rzp.on('payment.failed', function(response) {
+        showPaymentResult(false, response.error ? response.error.description : 'Payment failed');
+      });
+      rzp.open();
+    } catch(e) {
+      alert('Payment gateway could not load. Please disable any ad blockers and try again.');
+    }
+  })
+  .catch(function() {
+    if (document.getElementById('payment-loading')) {
+      document.body.removeChild(loadingOverlay);
+    }
+    alert('Network error. Please check your connection and try again.');
+  });
 }
 
-// Check if we were redirected back from Razorpay after successful payment
-function checkPaymentRedirect() {
-  var params = new URLSearchParams(window.location.search);
-  var paymentId = params.get('razorpay_payment_id');
-  var paymentLinkId = params.get('razorpay_payment_link_id');
+function verifyAndActivate(response) {
+  // Show verifying state
+  var verifyOverlay = document.createElement('div');
+  verifyOverlay.id = 'payment-verifying';
+  verifyOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif';
+  verifyOverlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:300px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
+      '<div style="font-size:28px;margin-bottom:12px">🔐</div>' +
+      '<div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:6px">Verifying payment...</div>' +
+      '<div style="font-size:13px;color:#888">Please wait</div>' +
+    '</div>';
+  document.body.appendChild(verifyOverlay);
 
-  if (paymentId && paymentLinkId) {
-    // Clean the URL so refreshing doesn't re-trigger
-    window.history.replaceState({}, document.title, window.location.pathname + (window.location.search.includes('template') ? '?template=' + new URLSearchParams(window.location.search).get('template') : ''));
-    // Mark payment done and show download modal
+  fetch(WORKER_URL + '/verify-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_signature: response.razorpay_signature
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    document.body.removeChild(verifyOverlay);
+    if (data.success) {
+      paymentDone = true;
+      onPaymentSuccess();
+    } else {
+      showPaymentResult(false, 'Payment verification failed. Please contact support with Payment ID: ' + response.razorpay_payment_id);
+    }
+  })
+  .catch(function() {
+    document.body.removeChild(verifyOverlay);
+    // Network error during verification — trust Razorpay response as fallback
+    // This prevents blocking legitimate users due to Worker downtime
     paymentDone = true;
-    // Wait for page to initialise before showing modal
-    setTimeout(function() { onPaymentSuccess(); }, 800);
-  }
+    onPaymentSuccess();
+  });
+}
+
+function showPaymentResult(success, message) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif';
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
+      '<div style="font-size:32px;margin-bottom:12px">' + (success ? '✅' : '❌') + '</div>' +
+      '<div style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:8px">' + (success ? 'Payment Successful' : 'Payment Failed') + '</div>' +
+      '<div style="font-size:13px;color:#888;margin-bottom:20px">' + (message || '') + '</div>' +
+      '<button onclick="this.closest(\'div\').parentNode.remove()" style="padding:10px 24px;border:none;border-radius:10px;background:#8B1A3A;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Close</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
+// Payment redirect check not needed — using Razorpay checkout modal instead
+function checkPaymentRedirect() {
+  // Legacy: kept for compatibility but no longer used
 }
 
 function onPaymentSuccess() {
