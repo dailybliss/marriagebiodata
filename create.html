@@ -2564,7 +2564,7 @@ function closePayment(e) {
 // ===== PAYMENT CONFIG =====
 // Replace these with your actual values after deploying the Cloudflare Worker
 var WORKER_URL = 'https://marriage-biodata-payment-worker.marriagebiodatamaker.workers.dev';
-var RAZORPAY_KEY_ID = 'rzp_test_TRwNu0u7XPgA0q'; // Replace with your live Key ID when Razorpay activates
+var RAZORPAY_KEY_ID = 'rzp_live_XXXXXXXXXXXXXXX'; // Replace with your live Key ID when Razorpay activates
 var PAYMENT_AMOUNT = 9900; // ₹99 in paise
 
 function initiatePayment() {
@@ -2588,21 +2588,22 @@ function initiatePayment() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ amount: PAYMENT_AMOUNT })
   })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
+  .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })
+  .then(function(result) {
     document.body.removeChild(loadingOverlay);
+    console.log('Worker response:', result.status, result.data);
 
-    if (!data.order_id) {
-      alert('Could not initiate payment. Please try again.');
+    if (!result.data.order_id) {
+      alert('Could not initiate payment. Error: ' + (result.data.error || result.data.detail || JSON.stringify(result.data)) + '\n\nPlease try again or contact support.');
       return;
     }
 
     // Step 2: Open Razorpay checkout with the order
     var options = {
       key: RAZORPAY_KEY_ID,
-      amount: data.amount,
-      currency: data.currency,
-      order_id: data.order_id,
+      amount: result.data.amount,
+      currency: result.data.currency,
+      order_id: result.data.order_id,
       name: 'Marriage Biodata Maker',
       description: 'Biodata Download — PDF & Image',
       image: 'https://marriagebiodatamaker.co/favicon.png',
@@ -2626,7 +2627,9 @@ function initiatePayment() {
     try {
       var rzp = new Razorpay(options);
       rzp.on('payment.failed', function(response) {
-        showPaymentResult(false, response.error ? response.error.description : 'Payment failed');
+        paymentDone = false;
+        var reason = response.error ? (response.error.description || response.error.reason || 'Payment failed') : 'Payment failed';
+        showPaymentResult(false, reason + '. Please try again.');
       });
       rzp.open();
     } catch(e) {
@@ -2654,6 +2657,11 @@ function verifyAndActivate(response) {
     '</div>';
   document.body.appendChild(verifyOverlay);
 
+  function removeVerifyOverlay() {
+    var el = document.getElementById('payment-verifying');
+    if (el) el.parentNode.removeChild(el);
+  }
+
   fetch(WORKER_URL + '/verify-payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2665,7 +2673,7 @@ function verifyAndActivate(response) {
   })
   .then(function(res) { return res.json(); })
   .then(function(data) {
-    document.body.removeChild(verifyOverlay);
+    removeVerifyOverlay();
     if (data.success) {
       paymentDone = true;
       onPaymentSuccess();
@@ -2673,12 +2681,10 @@ function verifyAndActivate(response) {
       showPaymentResult(false, 'Payment verification failed. Please contact support with Payment ID: ' + response.razorpay_payment_id);
     }
   })
-  .catch(function() {
-    document.body.removeChild(verifyOverlay);
-    // Network error during verification — trust Razorpay response as fallback
-    // This prevents blocking legitimate users due to Worker downtime
-    paymentDone = true;
-    onPaymentSuccess();
+  .catch(function(err) {
+    removeVerifyOverlay();
+    // Do NOT fall back to success on network error — show error instead
+    showPaymentResult(false, 'Could not verify payment. Please contact support with Payment ID: ' + (response.razorpay_payment_id || 'unknown'));
   });
 }
 
