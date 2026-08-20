@@ -2564,7 +2564,7 @@ function closePayment(e) {
 // ===== PAYMENT CONFIG =====
 // Replace these with your actual values after deploying the Cloudflare Worker
 var WORKER_URL = 'https://marriage-biodata-payment-worker.marriagebiodatamaker.workers.dev';
-var RAZORPAY_KEY_ID = 'rzp_live_XXXXXXXXXXXXXXX'; // Replace with your live Key ID when Razorpay activates
+var RAZORPAY_KEY_ID = 'rzp_test_TRwNu0u7XPgA0q'; // Test Key ID — replace with live key when Razorpay account is activated
 var PAYMENT_AMOUNT = 9900; // ₹99 in paise
 
 function initiatePayment() {
@@ -2606,7 +2606,6 @@ function initiatePayment() {
       order_id: result.data.order_id,
       name: 'Marriage Biodata Maker',
       description: 'Biodata Download — PDF & Image',
-      image: 'https://marriagebiodatamaker.co/favicon.png',
       theme: { color: '#8B1A3A' },
       prefill: {
         name: formData.fullName || '',
