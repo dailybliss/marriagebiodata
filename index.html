@@ -872,6 +872,39 @@ body {
   .filter-chip { padding: 5px 10px; font-size: 11px; }
   .trust-bar { gap: 12px; }
 }
+
+/* ===== SITE FOOTER ===== */
+.site-footer { background: #fff; color: #5A4A3A; border-top: 1px solid #F0EAE2; padding: 56px 24px 0; }
+.site-footer-inner { max-width: 960px; margin: 0 auto; }
+.site-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; }
+.site-footer-name { font-family: 'Dancing Script', cursive; font-size: 22px; font-weight: 700; background: linear-gradient(90deg, #c0392b, #e67e22, #f1c40f, #27ae60, #2980b9, #8e44ad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; margin-bottom: 12px; }
+.site-footer-tagline { font-size: 13px; line-height: 1.7; color: #5A4A3A; margin-bottom: 12px; max-width: 280px; }
+.site-footer-keywords { font-size: 11px; color: #8A7A6A; line-height: 1.8; }
+.site-footer-col-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #8B1A3A; margin-bottom: 14px; }
+.site-footer-links { list-style: none; padding: 0; margin: 0; }
+.site-footer-links li { margin-bottom: 9px; }
+.site-footer-links a { font-size: 13px; color: #5A4A3A; text-decoration: none; transition: color 0.2s; }
+.site-footer-links a:hover { color: #e67e22; }
+.site-footer-bottom { border-top: 1px solid #F0EAE2; padding: 20px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.site-footer-copy { font-size: 12px; color: #8A7A6A; }
+.site-footer-copy a { color: #5A4A3A; text-decoration: none; }
+.site-footer-bottom-links { display: flex; gap: 20px; }
+.site-footer-bottom-links a { font-size: 12px; color: #8A7A6A; text-decoration: none; }
+.site-footer-bottom-links a:hover { color: #9a7a84; }
+@media (max-width: 768px) { .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } .site-footer-brand { grid-column: 1 / -1; } }
+@media (max-width: 480px) { .site-footer-grid { grid-template-columns: 1fr; } .site-footer-bottom { flex-direction: column; align-items: flex-start; } }
+.site-footer { background: #fff; color: #5A4A3A; border-top: 1px solid #F0EAE2; padding: 36px 24px 0; margin-top: 40px; }
+.site-footer-inner { max-width: 960px; margin: 0 auto; }
+.site-footer-top { padding-bottom: 24px; }
+.site-footer-brand-name { font-family: 'Dancing Script', cursive; font-size: 22px; font-weight: 700; background: linear-gradient(90deg,#c0392b,#e67e22,#f1c40f,#27ae60,#2980b9,#8e44ad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; margin-bottom: 8px; }
+.site-footer-tagline { font-size: 13px; line-height: 1.7; color: #5A4A3A; max-width: 400px; }
+.site-footer-bottom { border-top: 1px solid #F0EAE2; padding: 16px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.site-footer-copy { font-size: 12px; color: #8A7A6A; }
+.site-footer-copy a { color: #5A4A3A; text-decoration: none; }
+.site-footer-bottom-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.site-footer-bottom-links a { font-size: 12px; color: #8A7A6A; text-decoration: none; }
+.site-footer-bottom-links a:hover { color: #8B1A3A; }
+.footer-heart { color: #c0392b; } }
 </style>
 <script type="application/ld+json">
 {
@@ -1832,5 +1865,41 @@ renderThumbs();
 renderGrid();
 </script>
 
+
+<footer class="site-footer" role="contentinfo">
+  <div class="site-footer-inner">
+    <div class="site-footer-top">
+      <div class="site-footer-brand-name">Marriage Biodata Maker</div>
+      <p class="site-footer-tagline">The easiest way to create a beautiful marriage biodata online. No login, no designer, no fuss.</p>
+    </div>
+    <div class="site-footer-bottom">
+      <p class="site-footer-copy">© 2026 <a href="/">marriagebiodatamaker.co</a>. All rights reserved. Made with <span class="footer-heart">♥</span> in India.</p>
+      <div class="site-footer-bottom-links">
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/refund.html">Refund</a>
+        <a href="/cancellation.html">Cancellation</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="site-footer-inner">
+    <div class="site-footer-top">
+      <div class="site-footer-brand-name">Marriage Biodata Maker</div>
+      <p class="site-footer-tagline">The easiest way to create a beautiful marriage biodata online. No login, no designer, no fuss.</p>
+    </div>
+    <div class="site-footer-bottom">
+      <p class="site-footer-copy">© 2026 <a href="/">marriagebiodatamaker.co</a>. All rights reserved. Made with <span class="footer-heart">♥</span> in India.</p>
+      <div class="site-footer-bottom-links">
+        <a href="/terms.html">Terms</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/refund.html">Refund</a>
+        <a href="/cancellation.html">Cancellation</a>
+      </div>
+    </div>
+  </div>
+</footer>
 </body>
 </html>
