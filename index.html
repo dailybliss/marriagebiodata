@@ -7,6 +7,7 @@
 <meta name="description" content="Create a stunning marriage biodata in minutes. Pick a beautiful template, fill your details, download as PDF. No login, no signup, works on any device.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="showcase/Anamika_Sharma_biodata_1.webp" as="image" type="image/webp" fetchpriority="high">
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet"></noscript>
 <style>
@@ -951,25 +952,25 @@ body {
     <div class="showcase-track" id="showcase-track">
       <div class="showcase-slide active">
         <picture>
-          <source srcset="showcase/Anamika_Sharma_biodata_1.webp" type="image/webp">
+          <source srcset="showcase/Anamika_Sharma_biodata_1.webp" type="image/webp" sizes="(max-width: 600px) 60vw, 340px">
           <img src="showcase/Anamika_Sharma_biodata_1.png" alt="Sample marriage biodata - Kalash template" loading="eager" fetchpriority="high">
         </picture>
       </div>
       <div class="showcase-slide">
         <picture>
-          <source srcset="showcase/Anamika_Sharma_biodata_2.webp" type="image/webp">
+          <source srcset="showcase/Anamika_Sharma_biodata_2.webp" type="image/webp" sizes="(max-width: 600px) 60vw, 340px">
           <img src="showcase/Anamika_Sharma_biodata_2.png" alt="Sample marriage biodata - Flower template" loading="eager">
         </picture>
       </div>
       <div class="showcase-slide">
         <picture>
-          <source srcset="showcase/Anamika_Sharma_biodata_3.webp" type="image/webp">
+          <source srcset="showcase/Anamika_Sharma_biodata_3.webp" type="image/webp" sizes="(max-width: 600px) 60vw, 340px">
           <img src="showcase/Anamika_Sharma_biodata_3.png" alt="Sample marriage biodata - Artwork template" loading="eager">
         </picture>
       </div>
       <div class="showcase-slide">
         <picture>
-          <source srcset="showcase/Anamika_Sharma_biodata_4.webp" type="image/webp">
+          <source srcset="showcase/Anamika_Sharma_biodata_4.webp" type="image/webp" sizes="(max-width: 600px) 60vw, 340px">
           <img src="showcase/Anamika_Sharma_biodata_4.png" alt="Sample marriage biodata - Green template" loading="eager">
         </picture>
       </div>
@@ -1786,45 +1787,53 @@ function showcaseUpdateTrack() {
   var viewport = document.querySelector('.showcase-viewport');
   if (!viewport || !slides.length) return;
 
+  // ── READ phase (all layout reads together — no writes yet) ──
   var vpW = viewport.offsetWidth;
-  var slideW = Math.min(vpW * 0.62, 340); // cap at 340px on wide screens
+  var slideW = Math.min(vpW * 0.62, 340);
   var peekW = (vpW - slideW) / 2;
+  var track = document.getElementById('showcase-track');
+  var activeImg = slides[showcaseIdx] ? slides[showcaseIdx].querySelector('img') : null;
+  var imgH = (activeImg && activeImg.naturalHeight > 0)
+    ? Math.round(slideW * activeImg.naturalHeight / activeImg.naturalWidth)
+    : Math.round(slideW / 0.707);
+  var hasNaturalSize = !!(activeImg && activeImg.naturalHeight > 0);
 
-  slides.forEach(function(slide, i) {
+  // Pre-calculate all slide properties (pure JS, no DOM access)
+  var slideProps = [];
+  Array.prototype.forEach.call(slides, function(slide, i) {
     var rel = ((i - showcaseIdx) % showcaseTotal + showcaseTotal) % showcaseTotal;
     var left, opacity, scale, zIndex, display;
-    if (rel === 0) {
-      left = peekW; opacity = 1; scale = 1; zIndex = 2; display = 'block';
-    } else if (rel === 1) {
-      left = peekW + slideW; opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block';
-    } else if (rel === 3) {
-      left = peekW - slideW; opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block';
-    } else {
-      display = 'none'; opacity = 0; scale = 0.8; zIndex = 0; left = peekW;
-    }
-    slide.style.display = display;
-    slide.style.width = slideW + 'px';
-    slide.style.position = 'absolute';
-    slide.style.top = '0';
-    slide.style.left = left + 'px';
-    slide.style.transform = 'scale(' + scale + ')';
-    slide.style.transformOrigin = 'top center';
-    slide.style.opacity = opacity;
-    slide.style.zIndex = zIndex;
-    slide.style.transition = 'left 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s ease, opacity 0.4s ease';
-    slide.classList.toggle('active', rel === 0);
+    if (rel === 0)      { left = peekW;           opacity = 1;   scale = 1;   zIndex = 2; display = 'block'; }
+    else if (rel === 1) { left = peekW + slideW;  opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block'; }
+    else if (rel === 3) { left = peekW - slideW;  opacity = 0.5; scale = 0.9; zIndex = 1; display = 'block'; }
+    else                { left = peekW;           opacity = 0;   scale = 0.8; zIndex = 0; display = 'none';  }
+    slideProps.push({ left: left, opacity: opacity, scale: scale, zIndex: zIndex, display: display, active: rel === 0 });
   });
 
-  // Set track height from active slide image — attach onload to ALL images
-  var track = document.getElementById('showcase-track');
-  if (track) {
-    var activeImg = slides[showcaseIdx] ? slides[showcaseIdx].querySelector('img') : null;
-    if (activeImg && activeImg.naturalHeight > 0) {
-      track.style.height = Math.round(slideW * activeImg.naturalHeight / activeImg.naturalWidth) + 'px';
-    } else {
-      // Set fallback height and re-run when any image loads
-      track.style.height = Math.round(slideW / 0.707) + 'px';
-      slides.forEach(function(slide) {
+  // ── WRITE phase (all DOM writes in one rAF — no reads) ──
+  requestAnimationFrame(function() {
+    Array.prototype.forEach.call(slides, function(slide, i) {
+      var p = slideProps[i];
+      slide.style.cssText = [
+        'display:' + p.display,
+        'width:' + slideW + 'px',
+        'position:absolute',
+        'top:0',
+        'left:' + p.left + 'px',
+        'transform:scale(' + p.scale + ')',
+        'transform-origin:top center',
+        'opacity:' + p.opacity,
+        'z-index:' + p.zIndex,
+        'transition:left 0.4s cubic-bezier(0.4,0,0.2,1),transform 0.4s ease,opacity 0.4s ease'
+      ].join(';');
+      slide.classList.toggle('active', p.active);
+    });
+
+    if (track) track.style.height = imgH + 'px';
+
+    // Bind load events if image not yet loaded
+    if (!hasNaturalSize) {
+      Array.prototype.forEach.call(slides, function(slide) {
         var img = slide.querySelector('img');
         if (img && !img._loadBound) {
           img._loadBound = true;
@@ -1832,10 +1841,10 @@ function showcaseUpdateTrack() {
         }
       });
     }
-  }
 
-  var dots = document.querySelectorAll('.showcase-dot');
-  dots.forEach(function(d, i) { d.classList.toggle('active', i === showcaseIdx); });
+    var dots = document.querySelectorAll('.showcase-dot');
+    Array.prototype.forEach.call(dots, function(d, i) { d.classList.toggle('active', i === showcaseIdx); });
+  });
 }
 
 function showcaseGoTo(idx) {
