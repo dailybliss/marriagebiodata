@@ -1,0 +1,23 @@
+/*
+  Cache-Control: public, max-age=3600
+
+/showcase/*
+  Cache-Control: public, max-age=2592000
+
+/templates/*
+  Cache-Control: public, max-age=2592000
+
+/*.webp
+  Cache-Control: public, max-age=2592000
+
+/*.jpg
+  Cache-Control: public, max-age=2592000
+
+/*.png
+  Cache-Control: public, max-age=2592000
+
+/*.js
+  Cache-Control: public, max-age=86400
+
+/*.css
+  Cache-Control: public, max-age=86400
